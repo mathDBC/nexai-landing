@@ -396,10 +396,15 @@
   </div>
 
   <script>
-    /* ── Fond galactique ── */
+    /* ── Fond galactique — mouvement perpétuel ── */
     const canvas = document.getElementById('galaxy');
     const ctx = canvas.getContext('2d');
     let W, H, stars = [], nebulae = [], shootingStars = [];
+
+    /* drift global — simulates moving through space */
+    let driftX = 0;
+    let driftY = 0;
+    const DRIFT_SPEED = 0.04; /* px per frame — slow enough to feel, fast enough to notice */
 
     function resize() {
       W = canvas.width = window.innerWidth;
@@ -411,21 +416,25 @@
     function initStars(n = 200) {
       stars = [];
       for (let i = 0; i < n; i++) {
+        const layer = Math.random();
         stars.push({
           x: Math.random() * W,
           y: Math.random() * H,
-          r: Math.random() * 1.4 + 0.2,
-          opacity: Math.random() * 0.7 + 0.3,
-          speed: Math.random() * 0.04 + 0.01
+          r: layer < 0.6 ? Math.random() * 0.8 + 0.2 : Math.random() * 1.6 + 0.4,
+          baseOpacity: layer < 0.6 ? Math.random() * 0.5 + 0.3 : Math.random() * 0.3 + 0.5,
+          twinkleSpeed: Math.random() * 0.03 + 0.01,
+          twinklePhase: Math.random() * Math.PI * 2,
+          /* layer 0 = near (faster), layer 1 = far (slower) */
+          depth: layer
         });
       }
     }
 
     function initNebulae() {
       nebulae = [
-        { x: W * 0.15, y: H * 0.3, r: W * 0.28, color: '20,60,180,0.06', angle: 0 },
-        { x: W * 0.82, y: H * 0.7, r: W * 0.24, color: '100,0,180,0.05', angle: Math.PI },
-        { x: W * 0.5,  y: H * 0.15, r: W * 0.2, color: '0,140,160,0.04', angle: Math.PI / 2 }
+        { x: W * 0.15, y: H * 0.3, r: W * 0.28, color: '20,60,180,0.07', angle: 0, rotSpeed: 0.000025 },
+        { x: W * 0.82, y: H * 0.7, r: W * 0.24, color: '100,0,180,0.06', angle: Math.PI, rotSpeed: -0.00002 },
+        { x: W * 0.5,  y: H * 0.15, r: W * 0.2, color: '0,140,160,0.05', angle: Math.PI / 2, rotSpeed: 0.000018 }
       ];
     }
 
@@ -434,7 +443,7 @@
         x: Math.random() * W,
         y: Math.random() * H * 0.5,
         len: Math.random() * 120 + 60,
-        speed: Math.random() * 8 + 6,
+        speed: Math.random() * 10 + 7,
         angle: Math.PI / 4 + (Math.random() - 0.5) * 0.3,
         opacity: 1
       });
@@ -445,29 +454,45 @@
       ctx.fillStyle = '#0a0f14';
       ctx.fillRect(0, 0, W, H);
 
+      /* ── Nebulae (slow rotation + pulse) ── */
       nebulae.forEach(n => {
-        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+        n.angle += n.rotSpeed;
+        const pulse = 1 + 0.04 * Math.sin(now * 0.0004);
+        const r = n.r * pulse;
+        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, r);
         g.addColorStop(0, `rgba(${n.color})`);
         g.addColorStop(1, 'rgba(0,0,0,0)');
         ctx.fillStyle = g;
         ctx.save();
         ctx.translate(n.x, n.y);
-        ctx.rotate(n.angle + now * 0.00003);
+        ctx.rotate(n.angle);
         ctx.translate(-n.x, -n.y);
         ctx.beginPath();
-        ctx.ellipse(n.x, n.y, n.r, n.r * 0.6, n.angle, 0, Math.PI * 2);
+        ctx.ellipse(n.x, n.y, r, r * 0.6, n.angle, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       });
 
+      /* ── Stars — drifting with depth layers ── */
       stars.forEach(s => {
-        const twinkle = s.opacity * (0.7 + 0.3 * Math.sin(now * 0.001 * s.speed + s.x));
+        /* depth-based parallax: near stars move faster */
+        const depthFactor = 0.3 + s.depth * 0.7;
+        const speed = DRIFT_SPEED * depthFactor;
+
+        /* continuous drift — stars wrap around edges */
+        s.x += speed;
+        s.y += speed * 0.3;
+        if (s.x > W) s.x = -2;
+        if (s.y > H) s.y = -2;
+
+        const twinkle = s.baseOpacity * (0.6 + 0.4 * Math.sin(now * s.twinkleSpeed * 10 + s.twinklePhase));
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
         ctx.fill();
       });
 
+      /* ── Shooting stars ── */
       shootingStars.forEach((ss, i) => {
         const dx = Math.cos(ss.angle) * ss.len;
         const dy = Math.sin(ss.angle) * ss.len;
@@ -482,7 +507,7 @@
         ctx.stroke();
         ss.x -= Math.cos(ss.angle) * ss.speed;
         ss.y -= Math.sin(ss.angle) * ss.speed;
-        ss.opacity -= 0.015;
+        ss.opacity -= 0.012;
         if (ss.opacity <= 0) shootingStars.splice(i, 1);
       });
 
