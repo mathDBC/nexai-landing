@@ -485,7 +485,7 @@
         if (s.x > W) s.x = -2;
         if (s.y > H) s.y = -2;
 
-        const twinkle = s.baseOpacity * (0.6 + 0.4 * Math.sin(now * s.twinkleSpeed * 10 + s.twinklePhase));
+        const twinkle = s.baseOpacity;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
