@@ -379,8 +379,37 @@
 
  /* ── Mentions légales ── */
  .legal {
-   padding: 4rem 2rem;
+   padding: 0 2rem;
    border-top: 1px solid rgba(31, 46, 60, 0.4);
+ }
+ .legal-toggle {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   gap: 0.4rem;
+   padding: 1rem;
+   cursor: pointer;
+   font-size: 0.78rem;
+   color: #4a5568;
+   user-select: none;
+ }
+ .legal-toggle:hover {
+   color: #93a4b3;
+ }
+ .legal-arrow {
+   display: inline-block;
+   transition: transform 0.2s;
+   font-size: 0.7rem;
+ }
+ .legal-toggle.open .legal-arrow {
+   transform: rotate(180deg);
+ }
+ .legal-content {
+   display: none;
+   padding-bottom: 2rem;
+ }
+ .legal-content.open {
+   display: block;
  }
  .legal-inner {
    max-width: 720px;
@@ -613,9 +642,13 @@
       <a href="mailto:mathieudbc@outlook.com" class="btn-primary">Demander un échange gratuit</a>
     </section>
 
-    <!-- ── Mentions légales ── -->
+    <!-- ── Mentions légales (pliable) ── -->
     <section class="legal" id="mentions">
-      <div class="legal-inner">
+      <div class="legal-toggle" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+        <span>Mentions légales</span>
+        <span class="legal-arrow">▾</span>
+      </div>
+      <div class="legal-content">
         <h2>Mentions légales</h2>
         <div class="legal-block">
           <h3>1. Éditeur du site</h3>
