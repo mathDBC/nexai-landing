@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeXAI — L'IA qui sert votre business</title>
+  <meta name="description" content="NeXAI : consultant IA qui aide les PME, PMI et particuliers à automatiser leurs processus, fluidifier leurs flux et gagner du temps grâce à des solutions d'intelligence artificielle concrètes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0f14;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: #e6eef5;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* ── Canvas galactique ── */
+    #galaxy {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* Vignette */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 25%, #0a0f14 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Logo centré ── */
+    .brand-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2.5rem 2rem 0;
+    }
+    .logo-mark {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .logo-main {
+      display: flex;
+      align-items: center;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    .logo-ne { color: #ffffff; }
+    .logo-x {
+      position: relative;
+      color: #22d3ee;
+      font-style: italic;
+    }
+    .logo-x::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #22d3ee, #34d399);
+      border-radius: 2px;
+    }
+    .logo-ai { color: #34d399; }
+    .logo-sub {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #93a4b3;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 2rem 3rem;
+      position: relative;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(500px 350px at 30% 25%, rgba(34, 211, 238, 0.07), transparent 60%),
+        radial-gradient(450px 300px at 70% 75%, rgba(52, 211, 153, 0.06), transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative;
+      max-width: 760px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 46, 60, 0.8);
+      background: rgba(19, 29, 40, 0.6);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #93a4b3;
+      margin-bottom: 2rem;
+    }
+    .hero-badge .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 8px #34d399;
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 8vw, 6.5rem);
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: -0.04em;
+      line-height: 1.0;
+      margin-bottom: 1.75rem;
+    }
+    .accent { color: #22d3ee; }
+    .hero p.lead {
+      font-size: 1.05rem;
+      color: #93a4b3;
+      line-height: 1.75;
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 0.9rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.75rem 1.75rem;
+      background: linear-gradient(135deg, #22d3ee, #34d399);
+      color: #04121a;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-decoration: none;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(34, 211, 238, 0.2);
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(34, 211, 238, 0.3);
+    }
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.75rem 1.75rem;
+      border: 1px solid rgba(31, 46, 60, 0.8);
+      color: #e6eef5;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 10px;
+      background: rgba(19, 29, 40, 0.4);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: #22d3ee; color: #22d3ee; }
+
+    /* ── Services ── */
+    .services {
+      border-top: 1px solid rgba(31, 46, 60, 0.5);
+      background: rgba(10, 15, 20, 0.5);
+      backdrop-filter: blur(8px);
+      padding: 3rem 2rem;
+    }
+    .services-inner {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .service-card {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(31, 46, 60, 0.6);
+      background: rgba(14, 22, 32, 0.6);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .service-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(34, 211, 238, 0.3);
+    }
+    .service-img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      display: block;
+    }
+    .service-body {
+      padding: 1.25rem;
+    }
+    .service-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.4rem;
+    }
+    .service-card p {
+      font-size: 0.8rem;
+      color: #93a4b3;
+      line-height: 1.55;
+    }
+
+    /* ── CTA ── */
+    .cta-strip {
+      text-align: center;
+      padding: 5rem 2rem;
+      border-top: 1px solid rgba(31, 46, 60, 0.4);
+    }
+    .cta-strip h2 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      margin-bottom: 0.8rem;
+    }
+    .cta-strip p {
+      color: #93a4b3;
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+      max-width: 460px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .contact-chips {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.8rem;
+    }
+    .contact-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #e6eef5;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 9px 16px;
+      border: 1px solid rgba(31, 46, 60, 0.8);
+      border-radius: 999px;
+      background: rgba(19, 29, 40, 0.4);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .contact-chip:hover { border-color: #22d3ee; color: #22d3ee; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid rgba(31, 46, 60, 0.4);
+      padding: 1.2rem 2rem;
+      text-align: center;
+    }
+    footer p { color: #93a4b3; font-size: 0.78rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 860px) {
+      .services-inner { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 700px) {
+      .brand-bar { padding: 2rem 1.5rem 0; }
+      .hero { padding: 3rem 1.5rem 2rem; }
+      .services { padding: 2rem 1.5rem; }
+      .cta-strip { padding: 3.5rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="galaxy"></canvas>
+
+  <div class="page">
+
+    <!-- ── Brand centré ── -->
+    <div class="brand-bar">
+      <div class="logo-mark">
+        <div class="logo-main">
+          <span class="logo-ne">Ne</span><span class="logo-x">X</span><span class="logo-ai">AI</span>
+        </div>
+        <span class="logo-sub">Automatisations &amp; Optimisations</span>
+      </div>
+    </div>
+
+    <!-- ── Hero ── -->
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="hero-badge"><span class="dot"></span> NeXAI — automatisations &amp; optimisations</span>
+        <h1>Vous bossez.<br>L'IA bosse avec vous.</h1>
+        <p class="lead">
+          J'aide les PME, PMI et particuliers à <strong>automatiser leurs processus</strong>,
+          <strong>fluidifier leurs flux</strong> et <strong>gagner un temps précieux</strong>
+          grâce à des solutions d'intelligence artificielle concrètes, pensées pour votre métier.
+        </p>
+        <div class="hero-cta">
+          <a href="mailto:contact@mathdbc.fr" class="btn-primary">Échanger sur votre projet</a>
+          <a href="#services" class="btn-ghost">Découvrir les services</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Services avec images ── -->
+    <section class="services" id="services">
+      <div class="services-inner">
+
+        <div class="service-card">
+          <img
+            src="https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?w=600&auto=format&fit=crop&q=60"
+            alt="Deux personnes discutant autour d'un ordinateur"
+            class="service-img"
+          >
+          <div class="service-body">
+            <h3>Conseils</h3>
+            <p>Un accompagnement clair pour choisir et déployer la bonne solution IA.</p>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <img
+            src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=60"
+            alt="Circuit électronique représentant l'automatisation"
+            class="service-img"
+          >
+          <div class="service-body">
+            <h3>Automatisations</h3>
+            <p>Supprimez les tâches manuelles répétitives qui ralentissent vos équipes.</p>
+          </div>
+        </div>
+
+        <div class="service-card">
+          <img
+            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=60"
+            alt="Écran affichant un workflow d'automatisation email"
+            class="service-img"
+          >
+          <div class="service-body">
+            <h3>Optimisations</h3>
+            <p>Fluidifiez vos processus pour réduire les coûts et les délais.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── CTA ── -->
+    <section class="cta-strip" id="contact">
+      <h2>Prêt à automatiser <span class="accent">votre prochain flux&nbsp;?</span></h2>
+      <p>
+        Parlons de votre situation : je vous réponds avec une vision claire de ce qui
+        peut être automatisé et du chemin le plus court pour y arriver.
+      </p>
+      <div class="contact-chips">
+        <a href="mailto:contact@mathdbc.fr" class="contact-chip">✉️ contact@mathdbc.fr</a>
+      </div>
+      <a href="mailto:contact@mathdbc.fr" class="btn-primary">Demander un échange gratuit</a>
+    </section>
+
+    <!-- ── Footer ── -->
+    <footer>
+      <p>© 2026 — NeXAI · Automatisations &amp; optimisations</p>
+    </footer>
+
+  </div>
+
+  <script>
+    /* ── Fond galactique ── */
+    const canvas = document.getElementById('galaxy');
+    const ctx = canvas.getContext('2d');
+    let W, H, stars = [], nebulae = [], shootingStars = [];
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function initStars(n = 200) {
+      stars = [];
+      for (let i = 0; i < n; i++) {
+        stars.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 1.4 + 0.2,
+          opacity: Math.random() * 0.7 + 0.3,
+          speed: Math.random() * 0.04 + 0.01
+        });
+      }
+    }
+
+    function initNebulae() {
+      nebulae = [
+        { x: W * 0.15, y: H * 0.3, r: W * 0.28, color: '20,60,180,0.06', angle: 0 },
+        { x: W * 0.82, y: H * 0.7, r: W * 0.24, color: '100,0,180,0.05', angle: Math.PI },
+        { x: W * 0.5,  y: H * 0.15, r: W * 0.2, color: '0,140,160,0.04', angle: Math.PI / 2 }
+      ];
+    }
+
+    function spawnShootingStar() {
+      shootingStars.push({
+        x: Math.random() * W,
+        y: Math.random() * H * 0.5,
+        len: Math.random() * 120 + 60,
+        speed: Math.random() * 8 + 6,
+        angle: Math.PI / 4 + (Math.random() - 0.5) * 0.3,
+        opacity: 1
+      });
+    }
+
+    function draw(now) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#0a0f14';
+      ctx.fillRect(0, 0, W, H);
+
+      nebulae.forEach(n => {
+        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+        g.addColorStop(0, `rgba(${n.color})`);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.save();
+        ctx.translate(n.x, n.y);
+        ctx.rotate(n.angle + now * 0.00003);
+        ctx.translate(-n.x, -n.y);
+        ctx.beginPath();
+        ctx.ellipse(n.x, n.y, n.r, n.r * 0.6, n.angle, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      stars.forEach(s => {
+        const twinkle = s.opacity * (0.7 + 0.3 * Math.sin(now * 0.001 * s.speed + s.x));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
+        ctx.fill();
+      });
+
+      shootingStars.forEach((ss, i) => {
+        const dx = Math.cos(ss.angle) * ss.len;
+        const dy = Math.sin(ss.angle) * ss.len;
+        const grad = ctx.createLinearGradient(ss.x, ss.y, ss.x - dx, ss.y - dy);
+        grad.addColorStop(0, `rgba(255,255,255,${ss.opacity})`);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(ss.x, ss.y);
+        ctx.lineTo(ss.x - dx, ss.y - dy);
+        ctx.stroke();
+        ss.x -= Math.cos(ss.angle) * ss.speed;
+        ss.y -= Math.sin(ss.angle) * ss.speed;
+        ss.opacity -= 0.015;
+        if (ss.opacity <= 0) shootingStars.splice(i, 1);
+      });
+
+      requestAnimationFrame(draw);
+    }
+
+    initStars();
+    initNebulae();
+    requestAnimationFrame(draw);
+    setInterval(() => { if (Math.random() < 0.4) spawnShootingStar(); }, 3000);
+  </script>
+</body>
+</html>
