@@ -377,8 +377,72 @@
     }
     .contact-chip:hover { border-color: #22d3ee; color: #22d3ee; }
 
-    /* ── Footer ── */
-    footer {
+ /* ── Mentions légales ── */
+ .legal {
+   padding: 4rem 2rem;
+   border-top: 1px solid rgba(31, 46, 60, 0.4);
+ }
+ .legal-inner {
+   max-width: 720px;
+   margin: 0 auto;
+ }
+ .legal-inner h2 {
+   font-size: clamp(1.5rem, 3vw, 2rem);
+   font-weight: 800;
+   color: #ffffff;
+   letter-spacing: -0.03em;
+   margin-bottom: 2rem;
+ }
+ .legal-block {
+   margin-bottom: 2rem;
+ }
+ .legal-block h3 {
+   font-size: 0.75rem;
+   font-weight: 600;
+   letter-spacing: 0.12em;
+   text-transform: uppercase;
+   color: #22d3ee;
+   margin-bottom: 0.6rem;
+ }
+ .legal-block p,
+ .legal-block li {
+   font-size: 0.88rem;
+   color: #93a4b3;
+   line-height: 1.7;
+ }
+ .legal-block ul {
+   list-style: none;
+   padding: 0;
+   margin: 0.5rem 0;
+ }
+ .legal-block ul li::before {
+   content: '– ';
+   color: #22d3ee;
+ }
+ .legal-block a {
+   color: #22d3ee;
+   text-decoration: none;
+ }
+ .legal-block a:hover {
+   text-decoration: underline;
+ }
+ .legal-update {
+   font-size: 0.78rem;
+   color: #4a5568;
+   margin-top: 2rem;
+   padding-top: 1.5rem;
+   border-top: 1px solid rgba(31, 46, 60, 0.4);
+ }
+ .footer-link {
+   color: inherit;
+   text-decoration: none;
+ }
+ .footer-link:hover {
+   color: #22d3ee;
+ }
+
+ /* ── Footer ── */
+ footer {
       border-top: 1px solid rgba(31, 46, 60, 0.4);
       padding: 1.2rem 2rem;
       text-align: center;
@@ -549,9 +613,48 @@
       <a href="mailto:mathieudbc@outlook.com" class="btn-primary">Demander un échange gratuit</a>
     </section>
 
+    <!-- ── Mentions légales ── -->
+    <section class="legal" id="mentions">
+      <div class="legal-inner">
+        <h2>Mentions légales</h2>
+        <div class="legal-block">
+          <h3>1. Éditeur du site</h3>
+          <p>Le site <strong>nexai-landing.vercel.app</strong> est editado par :</p>
+          <ul>
+            <li><strong>DUBOC Mathieu</strong></li>
+            <li>Contact : <a href="mailto:mathieudbc@outlook.com">mathieudbc@outlook.com</a></li>
+          </ul>
+          <p>NeXAI est un service indépendant de conseil en automatisation et intelligence artificielle.</p>
+        </div>
+        <div class="legal-block">
+          <h3>2. Hébergement</h3>
+          <ul>
+            <li><strong>Hébergeur :</strong> Vercel Inc.</li>
+            <li><strong>Adresse :</strong> 340 Pine Street, Suite 701 — San Francisco, CA 94104, États-Unis</li>
+            <li><strong>Site :</strong> <a href="https://vercel.com" target="_blank" rel="noopener noreferrer">vercel.com ↗</a></li>
+          </ul>
+        </div>
+        <div class="legal-block">
+          <h3>3. Propriété intellectuelle</h3>
+          <p>L'ensemble des éléments constituant le site — incluant sans s'y limiter le code source, les textes et le nom NeXAI — sont la propriété exclusive de <strong>DUBOC Mathieu</strong>.</p>
+          <p>Toute reproduction, représentation, modification ou exploitation sans autorisation écrite préalable est interdite, sous peine de poursuites judiciaires.</p>
+        </div>
+        <div class="legal-block">
+          <h3>4. Données personnelles</h3>
+          <p>Ce site ne collecte aucune donnée personnelle. Les formulaire de contact envoient directement un email à destination de l'éditeur, sans stockage tiers.</p>
+          <p>Pour toute question relative à vos données : <a href="mailto:mathieudbc@outlook.com">mathieudbc@outlook.com</a>.</p>
+        </div>
+        <div class="legal-block">
+          <h3>5. Limitation de responsabilité</h3>
+          <p>Les informations présentées sur ce site sont fournies à titre indicatif. L'éditeur ne saurait être tenu responsable des erreurs ou résultats obtenus suite à un usage inadapté.</p>
+        </div>
+        <p class="legal-update">Dernière mise à jour : septembre 2026</p>
+      </div>
+    </section>
+
     <!-- ── Footer ── -->
     <footer>
-      <p>© 2026 — <span translate="no">NeXAI</span> · Automatisations &amp; optimisations</p>
+      <p>© 2026 — <a href="#mentions" class="footer-link"><span translate="no">NeXAI</span></a> · Automatisations &amp; optimisations</p>
     </footer>
 
   </div>
