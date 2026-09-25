@@ -354,28 +354,57 @@
       margin-left: auto;
       margin-right: auto;
     }
-    .contact-chips {
+    .contact-form {
+      max-width: 420px;
+      margin: 0 auto;
       display: flex;
-      justify-content: center;
-      gap: 0.8rem;
-      flex-wrap: wrap;
-      margin-bottom: 1.8rem;
+      flex-direction: column;
+      gap: 0.9rem;
+      text-align: left;
     }
-    .contact-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #e6eef5;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.85rem;
-      padding: 9px 16px;
-      border: 1px solid rgba(31, 46, 60, 0.8);
-      border-radius: 999px;
+    .contact-form input,
+    .contact-form textarea {
+      width: 100%;
       background: rgba(19, 29, 40, 0.4);
-      transition: border-color 0.2s, color 0.2s;
+      border: 1px solid rgba(31, 46, 60, 0.8);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: #e6eef5;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
     }
-    .contact-chip:hover { border-color: #22d3ee; color: #22d3ee; }
+    .contact-form input:focus,
+    .contact-form textarea:focus {
+      outline: none;
+      border-color: #22d3ee;
+    }
+    .contact-form textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder {
+      color: #64748b;
+    }
+    .contact-form button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      padding: 13px 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #06121a;
+      background: linear-gradient(135deg, #22d3ee, #34d399);
+      transition: opacity 0.2s;
+    }
+    .contact-form button:hover { opacity: 0.9; }
+    .form-status {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #34d399;
+      display: none;
+    }
 
  /* ── Mentions légales ── */
  .legal {
@@ -516,7 +545,7 @@
           grâce à des solutions d'intelligence artificielle concrètes, pensées pour votre métier.
         </p>
         <div class="hero-cta">
-          <a href="mailto:mathieudbc@outlook.com" class="btn-primary">Échanger sur votre projet</a>
+          <a href="#contact" class="btn-primary">Échanger sur votre projet</a>
           <a href="#services" class="btn-ghost">Découvrir les services</a>
         </div>
       </div>
@@ -636,10 +665,14 @@
         Parlons de votre situation : je vous réponds avec une vision claire de ce qui
         peut être automatisé et du chemin le plus court pour y arriver.
       </p>
-      <div class="contact-chips">
-        <a href="mailto:mathieudbc@outlook.com" class="contact-chip">✉️ mathieudbc@outlook.com</a>
-      </div>
-      <a href="mailto:mathieudbc@outlook.com" class="btn-primary">Demander un échange gratuit</a>
+      <form class="contact-form" id="contact-form" action="https://formspree.io/f/ID_A_REMPLACER" method="POST">
+        <input type="text" name="name" placeholder="Votre prénom" required>
+        <input type="email" name="email" placeholder="Votre email" required>
+        <textarea name="message" placeholder="Parlez-moi de votre besoin…" required></textarea>
+        <input type="hidden" name="_subject" value="Nouveau message via NeXAI">
+        <button type="submit">Envoyer</button>
+        <p class="form-status" id="form-status">✅ Merci ! Votre message a bien été envoyé.</p>
+      </form>
     </section>
 
     <!-- ── Mentions légales (pliable) ── -->
@@ -792,6 +825,39 @@
     initNebulae();
     requestAnimationFrame(draw);
     setInterval(() => { if (Math.random() < 0.4) spawnShootingStar(); }, 3000);
+
+    /* ── Formulaire de contact (Formspree, AJAX) ── */
+    const contactForm = document.getElementById('contact-form');
+    if (contactForm) {
+      contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const status = document.getElementById('form-status');
+        const btn = contactForm.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Envoi…';
+        try {
+          const res = await fetch(contactForm.action, {
+            method: 'POST',
+            body: new FormData(contactForm),
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            contactForm.reset();
+            status.style.display = 'block';
+          } else {
+            status.textContent = '⚠️ Une erreur est survenue, réessayez.';
+            status.style.color = '#f87171';
+            status.style.display = 'block';
+          }
+        } catch (err) {
+          status.textContent = '⚠️ Impossible d\'envoyer pour le moment.';
+          status.style.color = '#f87171';
+          status.style.display = 'block';
+        }
+        btn.disabled = false;
+        btn.textContent = 'Envoyer';
+      });
+    }
   </script>
 </body>
 </html>
