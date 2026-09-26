@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <title>&#78;&#101;&#88;&#65;&#73; — L'IA qui sert votre business</title>
-  <meta name="description" content="&#78;&#101;&#88;&#65;&#73; : consultant IA qui aide les PME, PMI et particuliers à automatiser leurs processus, dégager leurs équipes du travail répétitif grâce à des solutions d'intelligence artificielle concrètes.">
+  <title>&#65;&#117;&#114;&#101;&#111;&#115;&#32;&#65;&#73; — L'IA qui sert votre business</title>
+  <meta name="description" content="&#65;&#117;&#114;&#101;&#111;&#115;&#32;&#65;&#73; : consultant IA qui aide les PME, PMI et particuliers à automatiser leurs processus, dégager leurs équipes du travail répétitif grâce à des solutions d'intelligence artificielle concrètes.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
@@ -13,9 +13,9 @@
 
     html { scroll-behavior: smooth; }
     body {
-      background: #0a0f14;
+      background: #140c07;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      color: #e6eef5;
+      color: #f5ece0;
       overflow-x: hidden;
       min-height: 100vh;
     }
@@ -32,7 +32,7 @@
       content: '';
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 25%, #0a0f14 100%);
+      background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 25%, #140c07 100%);
       z-index: 1;
       pointer-events: none;
     }
@@ -68,28 +68,19 @@
       line-height: 1;
     }
     .logo-ne { color: #ffffff; }
-    .logo-x {
-      position: relative;
-      color: #22d3ee;
-      font-style: italic;
+    .logo-a {
+      background-image: linear-gradient(135deg, #f7d774, #e0a93b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .logo-x::after {
-      content: '';
-      position: absolute;
-      bottom: 2px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #22d3ee, #34d399);
-      border-radius: 2px;
-    }
-    .logo-ai { color: #34d399; }
+    .logo-ai { color: #ffffff; }
     .logo-sub {
       font-size: 0.7rem;
       font-weight: 600;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      color: #93a4b3;
+      color: #b3a18d;
     }
 
     /* ── Hero ── */
@@ -108,8 +99,8 @@
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(500px 350px at 30% 25%, rgba(34, 211, 238, 0.07), transparent 60%),
-        radial-gradient(450px 300px at 70% 75%, rgba(52, 211, 153, 0.06), transparent 60%);
+        radial-gradient(500px 350px at 30% 25%, rgba(255, 154, 60, 0.07), transparent 60%),
+        radial-gradient(450px 300px at 70% 75%, rgba(247, 215, 116, 0.06), transparent 60%);
       pointer-events: none;
     }
     .hero-inner {
@@ -122,19 +113,19 @@
       gap: 8px;
       padding: 5px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(31, 46, 60, 0.8);
-      background: rgba(19, 29, 40, 0.6);
+      border: 1px solid rgba(58, 37, 20, 0.8);
+      background: rgba(40, 25, 14, 0.6);
       font-size: 0.75rem;
       font-weight: 600;
-      color: #93a4b3;
+      color: #b3a18d;
       margin-bottom: 2rem;
     }
     .hero-badge .dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: #34d399;
-      box-shadow: 0 0 8px #34d399;
+      background: #f7d774;
+      box-shadow: 0 0 8px #f7d774;
     }
     .hero h1 {
       font-size: clamp(2.4rem, 5vw, 4.5rem);
@@ -144,10 +135,10 @@
       line-height: 1.0;
       margin-bottom: 1.75rem;
     }
-    .accent { color: #22d3ee; }
+    .accent { color: #ff9a3c; }
     .hero p.lead {
       font-size: 0.95rem;
-      color: #93a4b3;
+      color: #b3a18d;
       line-height: 1.75;
       max-width: 540px;
       margin: 0 auto 2.5rem;
@@ -162,40 +153,40 @@
       display: inline-flex;
       align-items: center;
       padding: 0.75rem 1.75rem;
-      background: linear-gradient(135deg, #22d3ee, #34d399);
+      background: linear-gradient(135deg, #ff9a3c, #f7d774);
       color: #04121a;
       font-family: 'Inter', sans-serif;
       font-size: 0.9rem;
       font-weight: 700;
       text-decoration: none;
       border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(34, 211, 238, 0.2);
+      box-shadow: 0 8px 24px rgba(255, 154, 60, 0.2);
       transition: transform 0.15s, box-shadow 0.2s;
     }
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(34, 211, 238, 0.3);
+      box-shadow: 0 12px 32px rgba(255, 154, 60, 0.3);
     }
     .btn-ghost {
       display: inline-flex;
       align-items: center;
       padding: 0.75rem 1.75rem;
-      border: 1px solid rgba(31, 46, 60, 0.8);
-      color: #e6eef5;
+      border: 1px solid rgba(58, 37, 20, 0.8);
+      color: #f5ece0;
       font-family: 'Inter', sans-serif;
       font-size: 0.9rem;
       font-weight: 600;
       text-decoration: none;
       border-radius: 10px;
-      background: rgba(19, 29, 40, 0.4);
+      background: rgba(40, 25, 14, 0.4);
       transition: border-color 0.2s, color 0.2s;
     }
-    .btn-ghost:hover { border-color: #22d3ee; color: #22d3ee; }
+    .btn-ghost:hover { border-color: #ff9a3c; color: #ff9a3c; }
 
  /* ── Bénéfices ── */
  .benefits {
    padding: 5rem 2rem;
-   border-top: 1px solid rgba(31, 46, 60, 0.4);
+   border-top: 1px solid rgba(58, 37, 20, 0.4);
  }
  .benefits-inner {
    max-width: 960px;
@@ -217,12 +208,12 @@
    font-weight: 600;
    letter-spacing: 0.15em;
    text-transform: uppercase;
-   color: #22d3ee;
+   color: #ff9a3c;
    margin-bottom: 0.75rem;
  }
  .benefits-tagline {
    font-size: 1rem;
-   color: #93a4b3;
+   color: #b3a18d;
    max-width: 480px;
    margin: 0 auto;
    line-height: 1.6;
@@ -234,19 +225,19 @@
  }
  .benefit-card {
    padding: 1.75rem 1.5rem;
-   border: 1px solid rgba(34, 211, 238, 0.1);
+   border: 1px solid rgba(255, 154, 60, 0.1);
    border-radius: 10px;
    transition: border-color 0.2s, background 0.2s;
  }
  .benefit-card:hover {
-   border-color: rgba(34, 211, 238, 0.3);
-   background: rgba(34, 211, 238, 0.03);
+   border-color: rgba(255, 154, 60, 0.3);
+   background: rgba(255, 154, 60, 0.03);
  }
  .benefit-num {
    display: block;
    font-size: 2.2rem;
    font-weight: 900;
-   color: rgba(34, 211, 238, 0.18);
+   color: rgba(255, 154, 60, 0.18);
    letter-spacing: -0.04em;
    margin-bottom: 0.5rem;
    line-height: 1;
@@ -259,7 +250,7 @@
  }
  .benefit-card p {
    font-size: 0.88rem;
-   color: #93a4b3;
+   color: #b3a18d;
    line-height: 1.6;
  }
  @media (max-width: 768px) {
@@ -271,8 +262,8 @@
 
  /* ── Services ── */
  .services {
-      border-top: 1px solid rgba(31, 46, 60, 0.5);
-      background: rgba(10, 15, 20, 0.5);
+      border-top: 1px solid rgba(58, 37, 20, 0.5);
+      background: rgba(20, 12, 7, 0.5);
       backdrop-filter: blur(8px);
       padding: 3rem 2rem;
     }
@@ -286,13 +277,13 @@
     .service-card {
       border-radius: 14px;
       overflow: hidden;
-      border: 1px solid rgba(31, 46, 60, 0.6);
-      background: rgba(14, 22, 32, 0.6);
+      border: 1px solid rgba(58, 37, 20, 0.6);
+      background: rgba(28, 17, 9, 0.6);
       transition: transform 0.2s, border-color 0.2s;
     }
     .service-card:hover {
       transform: translateY(-4px);
-      border-color: rgba(34, 211, 238, 0.3);
+      border-color: rgba(255, 154, 60, 0.3);
     }
     .service-img {
       width: 100%;
@@ -311,7 +302,7 @@
     }
     .service-card p {
       font-size: 0.8rem;
-      color: #93a4b3;
+      color: #b3a18d;
       line-height: 1.55;
     }
 
@@ -319,15 +310,15 @@
     .story-strip {
       text-align: center;
       padding: 4rem 2rem;
-      border-top: 1px solid rgba(31, 46, 60, 0.4);
-      border-bottom: 1px solid rgba(31, 46, 60, 0.4);
+      border-top: 1px solid rgba(58, 37, 20, 0.4);
+      border-bottom: 1px solid rgba(58, 37, 20, 0.4);
     }
     .story-strip blockquote {
       max-width: 680px;
       margin: 0 auto;
       font-size: clamp(1.1rem, 2.5vw, 1.4rem);
       font-style: italic;
-      color: #a0b4c8;
+      color: #c8b4a0;
       line-height: 1.7;
     }
     .story-strip blockquote p::before { content: '\201C'; }
@@ -337,7 +328,7 @@
     .cta-strip {
       text-align: center;
       padding: 5rem 2rem;
-      border-top: 1px solid rgba(31, 46, 60, 0.4);
+      border-top: 1px solid rgba(58, 37, 20, 0.4);
     }
     .cta-strip h2 {
       font-size: clamp(1.6rem, 4vw, 2.4rem);
@@ -347,7 +338,7 @@
       margin-bottom: 0.8rem;
     }
     .cta-strip p {
-      color: #93a4b3;
+      color: #b3a18d;
       font-size: 0.95rem;
       margin-bottom: 2rem;
       max-width: 460px;
@@ -365,11 +356,11 @@
     .contact-form input,
     .contact-form textarea {
       width: 100%;
-      background: rgba(19, 29, 40, 0.4);
-      border: 1px solid rgba(31, 46, 60, 0.8);
+      background: rgba(40, 25, 14, 0.4);
+      border: 1px solid rgba(58, 37, 20, 0.8);
       border-radius: 8px;
       padding: 12px 14px;
-      color: #e6eef5;
+      color: #f5ece0;
       font-size: 0.95rem;
       font-family: inherit;
       transition: border-color 0.2s;
@@ -377,7 +368,7 @@
     .contact-form input:focus,
     .contact-form textarea:focus {
       outline: none;
-      border-color: #22d3ee;
+      border-color: #ff9a3c;
     }
     .contact-form textarea {
       min-height: 120px;
@@ -385,7 +376,7 @@
     }
     .contact-form input::placeholder,
     .contact-form textarea::placeholder {
-      color: #64748b;
+      color: #8b7a6b;
     }
     .contact-form button {
       cursor: pointer;
@@ -394,22 +385,22 @@
       padding: 13px 0;
       font-size: 1rem;
       font-weight: 700;
-      color: #06121a;
-      background: linear-gradient(135deg, #22d3ee, #34d399);
+      color: #1a0e04;
+      background: linear-gradient(135deg, #ff9a3c, #f7d774);
       transition: opacity 0.2s;
     }
     .contact-form button:hover { opacity: 0.9; }
     .form-status {
       text-align: center;
       font-size: 0.85rem;
-      color: #34d399;
+      color: #f7d774;
       display: none;
     }
 
  /* ── Mentions légales ── */
  .legal {
    padding: 0 2rem;
-   border-top: 1px solid rgba(31, 46, 60, 0.4);
+   border-top: 1px solid rgba(58, 37, 20, 0.4);
  }
  .legal-toggle {
    display: flex;
@@ -419,11 +410,11 @@
    padding: 1rem;
    cursor: pointer;
    font-size: 0.78rem;
-   color: #4a5568;
+   color: #68564a;
    user-select: none;
  }
  .legal-toggle:hover {
-   color: #93a4b3;
+   color: #b3a18d;
  }
  .legal-arrow {
    display: inline-block;
@@ -459,13 +450,13 @@
    font-weight: 600;
    letter-spacing: 0.12em;
    text-transform: uppercase;
-   color: #22d3ee;
+   color: #ff9a3c;
    margin-bottom: 0.6rem;
  }
  .legal-block p,
  .legal-block li {
    font-size: 0.88rem;
-   color: #93a4b3;
+   color: #b3a18d;
    line-height: 1.7;
  }
  .legal-block ul {
@@ -475,10 +466,10 @@
  }
  .legal-block ul li::before {
    content: '– ';
-   color: #22d3ee;
+   color: #ff9a3c;
  }
  .legal-block a {
-   color: #22d3ee;
+   color: #ff9a3c;
    text-decoration: none;
  }
  .legal-block a:hover {
@@ -486,26 +477,26 @@
  }
  .legal-update {
    font-size: 0.78rem;
-   color: #4a5568;
+   color: #68564a;
    margin-top: 2rem;
    padding-top: 1.5rem;
-   border-top: 1px solid rgba(31, 46, 60, 0.4);
+   border-top: 1px solid rgba(58, 37, 20, 0.4);
  }
  .footer-link {
    color: inherit;
    text-decoration: none;
  }
  .footer-link:hover {
-   color: #22d3ee;
+   color: #ff9a3c;
  }
 
  /* ── Footer ── */
  footer {
-      border-top: 1px solid rgba(31, 46, 60, 0.4);
+      border-top: 1px solid rgba(58, 37, 20, 0.4);
       padding: 1.2rem 2rem;
       text-align: center;
     }
-    footer p { color: #93a4b3; font-size: 0.78rem; }
+    footer p { color: #b3a18d; font-size: 0.78rem; }
 
     /* ── Responsive ── */
     @media (max-width: 860px) {
@@ -529,9 +520,9 @@
     <div class="brand-bar">
       <div class="logo-mark">
         <div class="logo-main">
-          <span class="logo-ne">Ne</span><span class="logo-x">X</span><span class="logo-ai">AI</span>
+          <span class="logo-a">A</span><span class="logo-ne">ureos</span>&nbsp;<span class="logo-a">A</span><span class="logo-ai">I</span>
         </div>
-        <span class="logo-sub">Automatisations &amp; Optimisations</span>
+        <span class="logo-sub">Conseil &amp; Automatisation IA</span>
       </div>
     </div>
 
@@ -681,7 +672,7 @@
         <input type="text" name="name" placeholder="Votre prénom" required>
         <input type="email" name="email" placeholder="Votre email" required>
         <textarea name="message" placeholder="Parlez-moi de votre besoin…" required></textarea>
-        <input type="hidden" name="_subject" value="Nouveau message via NeXAI">
+        <input type="hidden" name="_subject" value="Nouveau message via Aureos AI">
         <button type="submit">Envoyer</button>
         <p class="form-status" id="form-status">✅ Merci ! Votre message a bien été envoyé.</p>
       </form>
@@ -702,7 +693,7 @@
             <li><strong>DUBOC Mathieu</strong></li>
             <li>Contact : <a href="mailto:mathieudbc@outlook.com">mathieudbc@outlook.com</a></li>
           </ul>
-          <p>NeXAI est un service indépendant de conseil en automatisation et intelligence artificielle.</p>
+          <p>Aureos AI est un service indépendant de conseil en automatisation et intelligence artificielle.</p>
         </div>
         <div class="legal-block">
           <h3>2. Hébergement</h3>
@@ -714,7 +705,7 @@
         </div>
         <div class="legal-block">
           <h3>3. Propriété intellectuelle</h3>
-          <p>L'ensemble des éléments constituant le site — incluant sans s'y limiter le code source, les textes et le nom NeXAI — sont la propriété exclusive de <strong>DUBOC Mathieu</strong>.</p>
+          <p>L'ensemble des éléments constituant le site — incluant sans s'y limiter le code source, les textes et le nom Aureos AI — sont la propriété exclusive de <strong>DUBOC Mathieu</strong>.</p>
           <p>Toute reproduction, représentation, modification ou exploitation sans autorisation écrite préalable est interdite, sous peine de poursuites judiciaires.</p>
         </div>
         <div class="legal-block">
@@ -732,7 +723,7 @@
 
     <!-- ── Footer ── -->
     <footer>
-      <p>© 2026 — <a href="#mentions" class="footer-link"><span translate="no">NeXAI</span></a> · Automatisations &amp; optimisations</p>
+      <p>© 2026 — <a href="#mentions" class="footer-link"><span translate="no">Aureos AI</span></a> · Conseil &amp; Automatisation IA</p>
     </footer>
 
   </div>
@@ -765,9 +756,9 @@
 
     function initNebulae() {
       nebulae = [
-        { x: W * 0.15, y: H * 0.3, r: W * 0.25, color: '20,60,180,0.07', angle: 0 },
-        { x: W * 0.8,  y: H * 0.7, r: W * 0.22, color: '100,0,180,0.06', angle: Math.PI },
-        { x: W * 0.5,  y: H * 0.1, r: W * 0.18, color: '0,140,160,0.05', angle: Math.PI / 2 }
+        { x: W * 0.15, y: H * 0.3, r: W * 0.25, color: '255,138,38,0.09', angle: 0 },
+        { x: W * 0.8,  y: H * 0.7, r: W * 0.22, color: '214,86,24,0.08', angle: Math.PI },
+        { x: W * 0.5,  y: H * 0.1, r: W * 0.18, color: '255,196,92,0.06', angle: Math.PI / 2 }
       ];
     }
 
@@ -784,7 +775,7 @@
 
     function draw(now) {
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#0a0f14';
+      ctx.fillStyle = '#140c07';
       ctx.fillRect(0, 0, W, H);
 
       /* ── Nébuleuses en rotation lente ── */
