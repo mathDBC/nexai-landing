@@ -23,10 +23,11 @@
     /* ── Fond : falaise cosmique (JWST) + dérive très lente ── */
     #fond {
       position: fixed;
-      inset: 0;
+      inset: -12% 0;              /* débordement : la parallaxe au défilement reste couverte */
       z-index: 0;
       overflow: hidden;
       background: #060403;
+      will-change: transform;
     }
     #fond img {
       position: absolute;
@@ -767,52 +768,110 @@
   </div>
 
   <script>
-    /* ── Fond galactique — première version ── */
+    /* ── Champ d'étoiles : quatre plans de profondeur ──
+       Chaque plan défile à sa propre vitesse : c'est l'écart entre les plans
+       qui crée la sensation de volume (les proches filent, les lointains traînent). */
     const canvas = document.getElementById('galaxy');
     const ctx = canvas.getContext('2d');
-    let W, H, stars = [], shootingStars = [];
+    const fondLayer = document.getElementById('fond');
+    let W, H, stars = [], shootingStars = [], VPX, VPY, SPAN;
+
+    const PLANS = [
+      { n: 320, rMin: 0.25, rMax: 0.70, a: 0.30, sp: 0.115 },   // très lointain
+      { n: 190, rMin: 0.45, rMax: 1.15, a: 0.50, sp: 0.250 },   // lointain
+      { n: 95,  rMin: 0.75, rMax: 1.80, a: 0.74, sp: 0.500 },   // plan moyen
+      { n: 38,  rMin: 1.15, rMax: 2.70, a: 1.00, sp: 0.900 }    // plan proche
+    ];
+
+    /* Le halo est dessiné UNE fois ici. Le recréer pour chaque étoile à chaque
+       image faisait chuter le taux de rafraîchissement à quelques images/seconde. */
+    const GLOW = (() => {
+      const s = 64, c = document.createElement('canvas');
+      c.width = c.height = s;
+      const g = c.getContext('2d');
+      const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      gr.addColorStop(0,    'rgba(255,240,214,0.90)');
+      gr.addColorStop(0.22, 'rgba(255,228,184,0.26)');
+      gr.addColorStop(1,    'rgba(255,220,170,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, 6.2832); g.fill();
+      return c;
+    })();
+
+    function newStar(P, spread) {
+      return {
+        ang: Math.random() * Math.PI * 2,
+        d: spread ? SPAN * (0.03 + Math.random() * 0.97) : SPAN * (0.004 + Math.random() * 0.05),
+        z: P.rMin + Math.random() * (P.rMax - P.rMin),
+        P
+      };
+    }
+    function initStars() {
+      stars = [];
+      PLANS.forEach(P => { for (let i = 0; i < P.n; i++) stars.push(newStar(P, true)); });
+    }
+
+    let defilement = 0, maxS = 1;
+    function updateScroll() {
+      defilement = window.scrollY || 0;
+      maxS = Math.max(1, document.documentElement.scrollHeight - H);
+    }
 
     function resize() {
       W = canvas.width = window.innerWidth;
       H = canvas.height = window.innerHeight;
+      VPX = W * 0.56; VPY = H * 0.40;          // le point de fuite : là où l'on va
+      SPAN = Math.hypot(W, H) * 0.78;
+      initStars(); updateScroll();
     }
     window.addEventListener('resize', resize);
-    resize();
-
-    function initStars(n = 120) {
-      stars = [];
-      for (let i = 0; i < n; i++) {
-        stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          r: Math.random() * 1.4 + 0.2,
-          opacity: Math.random() * 0.7 + 0.3,
-          speed: Math.random() * 0.04 + 0.01
-        });
-      }
-    }
+    window.addEventListener('scroll', updateScroll, { passive: true });
 
     function spawnShootingStar() {
       shootingStars.push({
         x: Math.random() * W,
-        y: Math.random() * H * 0.5,
-        len: Math.random() * 60 + 30,
-        speed: Math.random() * 2 + 1,
-        angle: Math.PI / 4 + (Math.random() - 0.5) * 0.3,
+        y: Math.random() * H * 0.55,
+        len: Math.random() * 90 + 50,
+        speed: Math.random() * 2.6 + 1.4,
+        angle: Math.PI / 4 + (Math.random() - 0.5) * 0.35,
         opacity: 1
       });
     }
 
+    let lastT = 0;
     function draw(now) {
       ctx.clearRect(0, 0, W, H);
+      /* On avance en temps réel : la vitesse reste la même quel que soit le
+         matériel, au lieu de dépendre du nombre d'images par seconde. */
+      const dt = lastT ? Math.min(60, now - lastT) / 16.7 : 1;
+      lastT = now;
+      const vpy = VPY - defilement * 0.06;        // le champ glisse aussi quand on défile
 
-      /* ── Étoiles fixes (steady) ── */
-      stars.forEach(s => {
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
-        ctx.fill();
-      });
+      /* ── Étoiles : on avance vers le point de fuite ── */
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
+        s.d += s.P.sp * (0.22 + (s.d / SPAN) * 1.75) * dt;   // accélère en s'approchant
+        if (s.d > SPAN) { stars[i] = newStar(s.P, false); continue; }
+        const x = VPX + Math.cos(s.ang) * s.d;
+        const y = vpy + Math.sin(s.ang) * s.d;
+        if (x < -60 || x > W + 60 || y < -60 || y > H + 60) continue;
+        const k = s.d / SPAN;                                // 0 = au fond, 1 = tout proche
+        const r = s.z * (0.40 + k * 1.60);
+        const al = s.P.a * Math.min(1, k * 2.6 + 0.06) * Math.min(1, (1 - k) * 4.5 + 0.20);
+        if (r < 0.85) {                                      // poussière : un simple carré suffit
+          ctx.fillStyle = 'rgba(255,244,228,' + al.toFixed(3) + ')';
+          ctx.fillRect(x, y, r * 2, r * 2);
+        } else {
+          if (r > 1.5) {                                     // halo (sprite, pas de dégradé)
+            const gs = r * 9;
+            ctx.globalAlpha = al * 0.5;
+            ctx.drawImage(GLOW, x - gs / 2, y - gs / 2, gs, gs);
+            ctx.globalAlpha = 1;
+          }
+          ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
+          ctx.fillStyle = 'rgba(255,246,232,' + al.toFixed(3) + ')';
+          ctx.fill();
+        }
+      }
 
       /* ── Étoiles filantes ── */
       shootingStars.forEach((ss, i) => {
@@ -833,12 +892,18 @@
         if (ss.opacity <= 0) shootingStars.splice(i, 1);
       });
 
+      /* ── Parallaxe : le fond recule doucement pendant qu'on défile ── */
+      if (fondLayer) {
+        const frac = Math.min(1, defilement / maxS);
+        fondLayer.style.transform = 'translate3d(0,' + (frac * H * 0.085).toFixed(1) + 'px,0)';
+      }
+
       requestAnimationFrame(draw);
     }
 
-    initStars();
+    resize();
     requestAnimationFrame(draw);
-    setInterval(() => { if (Math.random() < 0.4) spawnShootingStar(); }, 3000);
+    setInterval(() => { if (Math.random() < 0.45) spawnShootingStar(); }, 3200);
 
     /* ── Formulaire de contact (Formspree, AJAX) ── */
     const contactForm = document.getElementById('contact-form');
