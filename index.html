@@ -777,10 +777,10 @@
     let W, H, stars = [], shootingStars = [], VPX, VPY, SPAN;
 
     const PLANS = [
-      { n: 320, rMin: 0.25, rMax: 0.70, a: 0.30, sp: 0.115 },   // très lointain
-      { n: 190, rMin: 0.45, rMax: 1.15, a: 0.50, sp: 0.250 },   // lointain
-      { n: 95,  rMin: 0.75, rMax: 1.80, a: 0.74, sp: 0.500 },   // plan moyen
-      { n: 38,  rMin: 1.15, rMax: 2.70, a: 1.00, sp: 0.900 }    // plan proche
+      { n: 380, rMin: 0.25, rMax: 0.70, a: 0.34, sp: 0.115 },   // très lointain
+      { n: 240, rMin: 0.45, rMax: 1.20, a: 0.56, sp: 0.250 },   // lointain
+      { n: 125, rMin: 0.75, rMax: 1.95, a: 0.82, sp: 0.500 },   // plan moyen
+      { n: 78,  rMin: 1.25, rMax: 3.60, a: 1.00, sp: 0.900 }    // plan proche
     ];
 
     /* Le halo est dessiné UNE fois ici. Le recréer pour chaque étoile à chaque
@@ -796,6 +796,79 @@
       g.fillStyle = gr; g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, 6.2832); g.fill();
       return c;
     })();
+
+    /* Halo chaud : même principe que GLOW, en plus ambré. */
+    const GLOW_CHAUD = (() => {
+      const s = 64, c = document.createElement('canvas');
+      c.width = c.height = s;
+      const g = c.getContext('2d');
+      const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      gr.addColorStop(0,    'rgba(255,214,158,0.72)');
+      gr.addColorStop(0.30, 'rgba(255,178,104,0.22)');
+      gr.addColorStop(1,    'rgba(255,160,80,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, 6.2832); g.fill();
+      return c;
+    })();
+
+    /* Poussière hors-focus : LE plan le plus proche. Plus un objet est proche,
+       plus il file vite et plus il est flou. C'est ce repère qui donne l'échelle
+       et fait basculer la scène du « fond d'écran » au « on avance dedans ». */
+    const POUSSIERE = [];
+    function nouvellePoussiere(etale) {
+      return {
+        ang: Math.random() * Math.PI * 2,
+        d: etale ? SPAN * (0.15 + Math.random() * 0.85) : SPAN * (0.02 + Math.random() * 0.08),
+        r: 5 + Math.random() * 20,
+        a: 0.10 + Math.random() * 0.16,
+        sp: 1.6 + Math.random() * 2.4
+      };
+    }
+    function initPoussiere() {
+      POUSSIERE.length = 0;
+      for (let i = 0; i < 14; i++) POUSSIERE.push(nouvellePoussiere(true));
+    }
+
+    /* Brume : quelques grosses volutes chaudes très diffuses. Ce sont elles qui
+       donnent le volume — une nappe large qui bouge se remarque bien plus qu'une
+       poussière d'étoiles, même quand elle est presque transparente. */
+    function spriteBrume(taille, rgb) {
+      const c = document.createElement('canvas');
+      c.width = c.height = taille;
+      const g = c.getContext('2d');
+      for (let i = 0; i < 8; i++) {
+        const x = taille * (0.26 + Math.random() * 0.48);
+        const y = taille * (0.26 + Math.random() * 0.48);
+        const r = taille * (0.13 + Math.random() * 0.21);
+        const gr = g.createRadialGradient(x, y, 0, x, y, r);
+        gr.addColorStop(0,    'rgba(' + rgb + ',0.50)');
+        gr.addColorStop(0.55, 'rgba(' + rgb + ',0.16)');
+        gr.addColorStop(1,    'rgba(' + rgb + ',0)');
+        g.fillStyle = gr;
+        g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill();
+      }
+      return c;
+    }
+
+    const BRUMES = [];
+    function initBrumes() {
+      BRUMES.length = 0;
+      const sprites = [
+        spriteBrume(320, '255,166,88'),
+        spriteBrume(320, '255,204,138'),
+        spriteBrume(320, '198,122,70')
+      ];
+      for (let i = 0; i < 7; i++) {
+        BRUMES.push({
+          sp: sprites[i % sprites.length],
+          x: Math.random() * W,
+          y: Math.random() * H,
+          taille: (0.6 + Math.random() * 0.95) * Math.max(W, H),
+          a: 0.05 + Math.random() * 0.08,
+          vx: (Math.random() < 0.5 ? -1 : 1) * (0.12 + Math.random() * 0.42),
+          vy: -(0.05 + Math.random() * 0.30)
+        });
+      }
+    }
 
     function newStar(P, spread) {
       return {
@@ -821,7 +894,7 @@
       H = canvas.height = window.innerHeight;
       VPX = W * 0.56; VPY = H * 0.40;          // le point de fuite : là où l'on va
       SPAN = Math.hypot(W, H) * 0.78;
-      initStars(); updateScroll();
+      initStars(); initBrumes(); initPoussiere(); updateScroll();
     }
     window.addEventListener('resize', resize);
     window.addEventListener('scroll', updateScroll, { passive: true });
@@ -846,6 +919,34 @@
       lastT = now;
       const vpy = VPY - defilement * 0.06;        // le champ glisse aussi quand on défile
 
+      /* ── Brume : nappes chaudes qui dérivent, le plan le plus large ── */
+      for (let i = 0; i < BRUMES.length; i++) {
+        const b = BRUMES[i];
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        if (b.x < -b.taille * 0.5) b.x = W + b.taille * 0.5;
+        if (b.x > W + b.taille * 0.5) b.x = -b.taille * 0.5;
+        if (b.y < -b.taille * 0.5) b.y = H + b.taille * 0.5;
+        if (b.y > H + b.taille * 0.5) b.y = -b.taille * 0.5;
+        ctx.globalAlpha = b.a;
+        ctx.drawImage(b.sp, b.x - b.taille / 2, b.y - b.taille / 2, b.taille, b.taille);
+      }
+      ctx.globalAlpha = 1;
+
+      /* ── Poussière hors-focus : premier plan, file devant l'objectif ── */
+      for (let i = 0; i < POUSSIERE.length; i++) {
+        const p = POUSSIERE[i];
+        p.d += p.sp * (0.40 + (p.d / SPAN) * 1.80) * dt;
+        if (p.d > SPAN) { POUSSIERE[i] = nouvellePoussiere(false); continue; }
+        const x = VPX + Math.cos(p.ang) * p.d;
+        const y = vpy + Math.sin(p.ang) * p.d;
+        if (x < -90 || x > W + 90 || y < -90 || y > H + 90) continue;
+        const kp = p.d / SPAN;
+        const rp = p.r * (0.35 + kp * 1.50);
+        ctx.globalAlpha = p.a * Math.min(1, kp * 2.2) * Math.min(1, (1 - kp) * 3 + 0.10);
+        ctx.drawImage(GLOW_CHAUD, x - rp, y - rp, rp * 2, rp * 2);
+      }
+      ctx.globalAlpha = 1;
+
       /* ── Étoiles : on avance vers le point de fuite ── */
       for (let i = 0; i < stars.length; i++) {
         const s = stars[i];
@@ -861,9 +962,9 @@
           ctx.fillStyle = 'rgba(255,244,228,' + al.toFixed(3) + ')';
           ctx.fillRect(x, y, r * 2, r * 2);
         } else {
-          if (r > 1.5) {                                     // halo (sprite, pas de dégradé)
-            const gs = r * 9;
-            ctx.globalAlpha = al * 0.5;
+          if (r > 1.1) {                                     // halo (sprite, pas de dégradé)
+            const gs = r * 10;
+            ctx.globalAlpha = al * 0.72;
             ctx.drawImage(GLOW, x - gs / 2, y - gs / 2, gs, gs);
             ctx.globalAlpha = 1;
           }
