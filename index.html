@@ -20,34 +20,7 @@
       min-height: 100vh;
     }
 
-    /* ── Fond : falaise cosmique (JWST) + dérive très lente ── */
-    #fond {
-      position: fixed;
-      inset: -12% 0;              /* débordement : la parallaxe au défilement reste couverte */
-      z-index: 0;
-      overflow: hidden;
-      background: #060403;
-      will-change: transform;
-    }
-    #fond img {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 112vw;
-      min-width: 166vh;           /* garantit la couverture même en portrait */
-      max-width: none;
-      transform: translate(-50%, -50%);
-      display: block;
-      animation: derive 240s ease-in-out infinite alternate;
-    }
-    @keyframes derive {
-      0%   { transform: translate(-50%, -50%) scale(1.00); }
-      100% { transform: translate(-51%, -51.3%) scale(1.06); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      #fond img { animation: none; }
-    }
-
-    /* ── Canvas : étoiles fixes + étoiles filantes par-dessus ── */
+    /* ── Canvas : toute la nuit est dessinée ici (nébuleuses, étoiles) ── */
     #galaxy {
       position: fixed;
       inset: 0;
@@ -55,14 +28,12 @@
       pointer-events: none;
     }
 
-    /* Vignette + voile de lisibilité (le texte passe au-dessus) */
+    /* Vignette : assombrit les bords, laisse le centre net */
     body::after {
       content: '';
       position: fixed;
       inset: 0;
-      background:
-        radial-gradient(ellipse 56% 62% at 44% 46%, rgba(5,3,2,0.90) 0%, rgba(5,3,2,0.70) 44%, rgba(5,3,2,0.26) 76%, rgba(5,3,2,0) 100%),
-        linear-gradient(180deg, rgba(5,3,2,0.78) 0%, rgba(5,3,2,0.46) 26%, rgba(5,3,2,0.56) 62%, rgba(5,3,2,0.92) 100%);
+      background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 25%, #140c07 100%);
       z-index: 1;
       pointer-events: none;
     }
@@ -542,11 +513,6 @@
 </head>
 <body>
   <script>window.scrollTo(0,0);</script>
-  <div id="fond">
-    <img src="assets/fond.jpg"
-         srcset="assets/fond-petit.jpg 1280w, assets/fond.jpg 2560w"
-         sizes="112vw" alt="" aria-hidden="true">
-  </div>
   <canvas id="galaxy"></canvas>
 
   <div class="page">
@@ -754,7 +720,7 @@
         </div>
         <div class="legal-block">
           <h3>6. Crédits</h3>
-          <p>Image de fond : « Cosmic Cliffs » dans la nébuleuse de la Carène, réalisée par le <strong>télescope spatial James Webb</strong> (NASA, ESA, CSA, STScI).</p>
+          <p>Fond : ciel de nuit composé pour le site (nébuleuses et étoiles générées, aucune image extérieure).</p>
         </div>
         <p class="legal-update">Dernière mise à jour : septembre 2026</p>
       </div>
@@ -768,243 +734,242 @@
   </div>
 
   <script>
-    /* ── Champ d'étoiles : quatre plans de profondeur ──
-       Chaque plan défile à sa propre vitesse : c'est l'écart entre les plans
-       qui crée la sensation de volume (les proches filent, les lointains traînent). */
+    /* ══ Ciel de nuit ══════════════════════════════════════════════════
+       Trois familles d'étoiles superposées :
+         · la poussière       — très nombreuse, fine, à peine visible
+         · les étoiles notables — plus grosses, halo et aigrettes
+         · les constellations  — figures réelles reliées par un trait ténu
+       Plus quelques nébuleuses chaudes en rotation très lente, et des étoiles
+       filantes. Le tout respire : chaque étoile a sa propre période, ce qui
+       évite l'effet « clignotement » d'un scintillement synchronisé.        */
     const canvas = document.getElementById('galaxy');
     const ctx = canvas.getContext('2d');
-    const fondLayer = document.getElementById('fond');
-    let W, H, stars = [], shootingStars = [], VPX, VPY, SPAN;
+    let W, H, poussiere = [], notables = [], figures = [], nebuleuses = [], filantes = [];
 
-    const PLANS = [
-      { n: 380, rMin: 0.25, rMax: 0.70, a: 0.34, sp: 0.115 },   // très lointain
-      { n: 240, rMin: 0.45, rMax: 1.20, a: 0.56, sp: 0.250 },   // lointain
-      { n: 125, rMin: 0.75, rMax: 1.95, a: 0.82, sp: 0.500 },   // plan moyen
-      { n: 78,  rMin: 1.25, rMax: 3.60, a: 1.00, sp: 0.900 }    // plan proche
+    /* Le halo est dessiné UNE seule fois puis réutilisé : le recréer pour chaque
+       étoile à chaque image faisait tomber la page à quelques images/seconde. */
+    function faireHalo(teinte) {
+      const s = 64, c = document.createElement('canvas');
+      c.width = c.height = s;
+      const g = c.getContext('2d');
+      const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      gr.addColorStop(0,    'rgba(' + teinte + ',0.85)');
+      gr.addColorStop(0.28, 'rgba(' + teinte + ',0.20)');
+      gr.addColorStop(1,    'rgba(' + teinte + ',0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, 6.2832); g.fill();
+      return c;
+    }
+    const HALO_BLANC = faireHalo('226,236,255');
+    const HALO_CHAUD = faireHalo('255,214,158');
+
+    /* Constellations réelles, en coordonnées relatives (0 → 1). Elles sont
+       placées sur les bords pour ne jamais passer derrière le texte. */
+    const CONSTELLATIONS = [
+      { e: [[0.05,0.14],[0.115,0.185],[0.175,0.215],[0.245,0.255],[0.305,0.205],[0.375,0.225],[0.435,0.285]],
+        l: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]] },                    // Grande Ourse
+      { e: [[0.705,0.085],[0.765,0.14],[0.825,0.075],[0.885,0.145],[0.945,0.09]],
+        l: [[0,1],[1,2],[2,3],[3,4]] },                                // Cassiopée
+      { e: [[0.085,0.60],[0.115,0.555],[0.155,0.525],[0.205,0.555],[0.245,0.605],[0.135,0.475],[0.185,0.665]],
+        l: [[0,5],[5,1],[1,2],[2,3],[3,6],[6,4],[3,5]] },              // Orion
+      { e: [[0.845,0.585],[0.868,0.645],[0.892,0.705],[0.822,0.642],[0.914,0.648]],
+        l: [[0,1],[1,2],[3,1],[1,4]] }                                 // Cygne
     ];
 
-    /* Le halo est dessiné UNE fois ici. Le recréer pour chaque étoile à chaque
-       image faisait chuter le taux de rafraîchissement à quelques images/seconde. */
-    const GLOW = (() => {
-      const s = 64, c = document.createElement('canvas');
-      c.width = c.height = s;
-      const g = c.getContext('2d');
-      const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-      gr.addColorStop(0,    'rgba(255,240,214,0.90)');
-      gr.addColorStop(0.22, 'rgba(255,228,184,0.26)');
-      gr.addColorStop(1,    'rgba(255,220,170,0)');
-      g.fillStyle = gr; g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, 6.2832); g.fill();
-      return c;
-    })();
+    function initCiel() {
+      const surface = W * H;
 
-    /* Halo chaud : même principe que GLOW, en plus ambré. */
-    const GLOW_CHAUD = (() => {
-      const s = 64, c = document.createElement('canvas');
-      c.width = c.height = s;
-      const g = c.getContext('2d');
-      const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-      gr.addColorStop(0,    'rgba(255,214,158,0.72)');
-      gr.addColorStop(0.30, 'rgba(255,178,104,0.22)');
-      gr.addColorStop(1,    'rgba(255,160,80,0)');
-      g.fillStyle = gr; g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, 6.2832); g.fill();
-      return c;
-    })();
-
-    /* Poussière hors-focus : LE plan le plus proche. Plus un objet est proche,
-       plus il file vite et plus il est flou. C'est ce repère qui donne l'échelle
-       et fait basculer la scène du « fond d'écran » au « on avance dedans ». */
-    const POUSSIERE = [];
-    function nouvellePoussiere(etale) {
-      return {
-        ang: Math.random() * Math.PI * 2,
-        d: etale ? SPAN * (0.15 + Math.random() * 0.85) : SPAN * (0.02 + Math.random() * 0.08),
-        r: 5 + Math.random() * 20,
-        a: 0.10 + Math.random() * 0.16,
-        sp: 1.6 + Math.random() * 2.4
-      };
-    }
-    function initPoussiere() {
-      POUSSIERE.length = 0;
-      for (let i = 0; i < 14; i++) POUSSIERE.push(nouvellePoussiere(true));
-    }
-
-    /* Brume : quelques grosses volutes chaudes très diffuses. Ce sont elles qui
-       donnent le volume — une nappe large qui bouge se remarque bien plus qu'une
-       poussière d'étoiles, même quand elle est presque transparente. */
-    function spriteBrume(taille, rgb) {
-      const c = document.createElement('canvas');
-      c.width = c.height = taille;
-      const g = c.getContext('2d');
-      for (let i = 0; i < 8; i++) {
-        const x = taille * (0.26 + Math.random() * 0.48);
-        const y = taille * (0.26 + Math.random() * 0.48);
-        const r = taille * (0.13 + Math.random() * 0.21);
-        const gr = g.createRadialGradient(x, y, 0, x, y, r);
-        gr.addColorStop(0,    'rgba(' + rgb + ',0.50)');
-        gr.addColorStop(0.55, 'rgba(' + rgb + ',0.16)');
-        gr.addColorStop(1,    'rgba(' + rgb + ',0)');
-        g.fillStyle = gr;
-        g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill();
-      }
-      return c;
-    }
-
-    const BRUMES = [];
-    function initBrumes() {
-      BRUMES.length = 0;
-      const sprites = [
-        spriteBrume(320, '255,166,88'),
-        spriteBrume(320, '255,204,138'),
-        spriteBrume(320, '198,122,70')
-      ];
-      for (let i = 0; i < 7; i++) {
-        BRUMES.push({
-          sp: sprites[i % sprites.length],
-          x: Math.random() * W,
-          y: Math.random() * H,
-          taille: (0.6 + Math.random() * 0.95) * Math.max(W, H),
-          a: 0.05 + Math.random() * 0.08,
-          vx: (Math.random() < 0.5 ? -1 : 1) * (0.12 + Math.random() * 0.42),
-          vy: -(0.05 + Math.random() * 0.30)
+      /* Poussière : densité proportionnelle à la surface de l'écran */
+      poussiere = [];
+      const nbP = Math.min(720, Math.round(surface / 2600));
+      for (let i = 0; i < nbP; i++) {
+        poussiere.push({
+          x: Math.random() * W, y: Math.random() * H,
+          r: 0.30 + Math.random() * 0.70,
+          a: 0.18 + Math.random() * 0.45,
+          ph: Math.random() * 6.2832,
+          pe: 4 + Math.random() * 9
         });
       }
-    }
 
-    function newStar(P, spread) {
-      return {
-        ang: Math.random() * Math.PI * 2,
-        d: spread ? SPAN * (0.03 + Math.random() * 0.97) : SPAN * (0.004 + Math.random() * 0.05),
-        z: P.rMin + Math.random() * (P.rMax - P.rMin),
-        P
-      };
-    }
-    function initStars() {
-      stars = [];
-      PLANS.forEach(P => { for (let i = 0; i < P.n; i++) stars.push(newStar(P, true)); });
-    }
+      /* Étoiles notables */
+      notables = [];
+      const nbN = Math.min(150, Math.round(surface / 13000));
+      for (let i = 0; i < nbN; i++) {
+        notables.push({
+          x: Math.random() * W, y: Math.random() * H,
+          r: 0.85 + Math.random() * 1.25,
+          a: 0.70 + Math.random() * 0.30,
+          chaud: Math.random() < 0.28,
+          aigrette: Math.random() < 0.32,
+          ph: Math.random() * 6.2832,
+          pe: 5 + Math.random() * 10
+        });
+      }
 
-    let defilement = 0, maxS = 1;
-    function updateScroll() {
-      defilement = window.scrollY || 0;
-      maxS = Math.max(1, document.documentElement.scrollHeight - H);
+      /* Constellations */
+      figures = CONSTELLATIONS.map(c => ({
+        etoiles: c.e.map(([x, y]) => ({
+          x: x * W, y: y * H,
+          r: 1.55 + Math.random() * 0.95,
+          a: 0.90 + Math.random() * 0.10,
+          ph: Math.random() * 6.2832,
+          pe: 7 + Math.random() * 11
+        })),
+        liens: c.l,
+        opacite: 0.085 + Math.random() * 0.065
+      }));
+
+      /* Nébuleuses : sur les bords et les angles, le centre reste dégagé */
+      nebuleuses = [
+        { x: W * 0.13, y: H * 0.30, r: W * 0.31, teinte: '255,138,38', a: 0.145, v: 1.00 },
+        { x: W * 0.84, y: H * 0.68, r: W * 0.28, teinte: '214,86,24',  a: 0.130, v: 0.85 },
+        { x: W * 0.50, y: H * 0.06, r: W * 0.25, teinte: '255,196,92', a: 0.100, v: 0.65 },
+        { x: W * 0.20, y: H * 0.88, r: W * 0.23, teinte: '255,166,88', a: 0.100, v: 0.80 },
+        { x: W * 0.92, y: H * 0.23, r: W * 0.20, teinte: '255,206,140', a: 0.080, v: 0.70 }
+      ];
     }
 
     function resize() {
       W = canvas.width = window.innerWidth;
       H = canvas.height = window.innerHeight;
-      VPX = W * 0.56; VPY = H * 0.40;          // le point de fuite : là où l'on va
-      SPAN = Math.hypot(W, H) * 0.78;
-      initStars(); initBrumes(); initPoussiere(); updateScroll();
+      initCiel();
     }
     window.addEventListener('resize', resize);
-    window.addEventListener('scroll', updateScroll, { passive: true });
 
-    function spawnShootingStar() {
-      shootingStars.push({
-        x: Math.random() * W,
+    function nouvelleFilante() {
+      filantes.push({
+        x: (0.15 + Math.random() * 1.0) * W,
         y: Math.random() * H * 0.55,
-        len: Math.random() * 90 + 50,
-        speed: Math.random() * 2.6 + 1.4,
-        angle: Math.PI / 4 + (Math.random() - 0.5) * 0.35,
-        opacity: 1
+        len: Math.random() * 70 + 45,
+        vitesse: Math.random() * 3.4 + 1.8,
+        angle: Math.PI / 4 + (Math.random() - 0.5) * 0.30,
+        opacite: 1,
+        chute: 0.008 + Math.random() * 0.010
       });
     }
 
-    let lastT = 0;
-    function draw(now) {
+    let dernier = 0;
+    function dessiner(now) {
       ctx.clearRect(0, 0, W, H);
-      /* On avance en temps réel : la vitesse reste la même quel que soit le
-         matériel, au lieu de dépendre du nombre d'images par seconde. */
-      const dt = lastT ? Math.min(60, now - lastT) / 16.7 : 1;
-      lastT = now;
-      const vpy = VPY - defilement * 0.06;        // le champ glisse aussi quand on défile
+      /* On avance en temps réel : la vitesse ne dépend pas du nombre d'images
+         par seconde, donc le rendu est le même sur un PC récent et un vieux. */
+      const dt = dernier ? Math.min(64, now - dernier) / 16.7 : 1;
+      dernier = now;
+      const t = now / 1000;
 
-      /* ── Brume : nappes chaudes qui dérivent, le plan le plus large ── */
-      for (let i = 0; i < BRUMES.length; i++) {
-        const b = BRUMES[i];
-        b.x += b.vx * dt; b.y += b.vy * dt;
-        if (b.x < -b.taille * 0.5) b.x = W + b.taille * 0.5;
-        if (b.x > W + b.taille * 0.5) b.x = -b.taille * 0.5;
-        if (b.y < -b.taille * 0.5) b.y = H + b.taille * 0.5;
-        if (b.y > H + b.taille * 0.5) b.y = -b.taille * 0.5;
-        ctx.globalAlpha = b.a;
-        ctx.drawImage(b.sp, b.x - b.taille / 2, b.y - b.taille / 2, b.taille, b.taille);
+      /* ── Nébuleuses : rotation très lente (≈ 3 minutes par tour) ── */
+      for (let i = 0; i < nebuleuses.length; i++) {
+        const n = nebuleuses[i];
+        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+        g.addColorStop(0,    'rgba(' + n.teinte + ',' + n.a + ')');
+        g.addColorStop(0.45, 'rgba(' + n.teinte + ',' + (n.a * 0.45).toFixed(3) + ')');
+        g.addColorStop(1,    'rgba(' + n.teinte + ',0)');
+        ctx.save();
+        ctx.translate(n.x, n.y);
+        ctx.rotate(t * 0.031 * n.v);
+        ctx.translate(-n.x, -n.y);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.ellipse(n.x, n.y, n.r, n.r * 0.62, 0, 0, 6.2832);
+        ctx.fill();
+        ctx.restore();
       }
-      ctx.globalAlpha = 1;
 
-      /* ── Poussière hors-focus : premier plan, file devant l'objectif ── */
-      for (let i = 0; i < POUSSIERE.length; i++) {
-        const p = POUSSIERE[i];
-        p.d += p.sp * (0.40 + (p.d / SPAN) * 1.80) * dt;
-        if (p.d > SPAN) { POUSSIERE[i] = nouvellePoussiere(false); continue; }
-        const x = VPX + Math.cos(p.ang) * p.d;
-        const y = vpy + Math.sin(p.ang) * p.d;
-        if (x < -90 || x > W + 90 || y < -90 || y > H + 90) continue;
-        const kp = p.d / SPAN;
-        const rp = p.r * (0.35 + kp * 1.50);
-        ctx.globalAlpha = p.a * Math.min(1, kp * 2.2) * Math.min(1, (1 - kp) * 3 + 0.10);
-        ctx.drawImage(GLOW_CHAUD, x - rp, y - rp, rp * 2, rp * 2);
+      /* ── Poussière d'étoiles ── */
+      for (let i = 0; i < poussiere.length; i++) {
+        const s = poussiere[i];
+        const resp = 0.85 + 0.15 * Math.sin(t * (6.2832 / s.pe) + s.ph);
+        ctx.fillStyle = 'rgba(236,240,255,' + (s.a * resp).toFixed(3) + ')';
+        ctx.fillRect(s.x, s.y, s.r, s.r);
       }
-      ctx.globalAlpha = 1;
 
-      /* ── Étoiles : on avance vers le point de fuite ── */
-      for (let i = 0; i < stars.length; i++) {
-        const s = stars[i];
-        s.d += s.P.sp * (0.22 + (s.d / SPAN) * 1.75) * dt;   // accélère en s'approchant
-        if (s.d > SPAN) { stars[i] = newStar(s.P, false); continue; }
-        const x = VPX + Math.cos(s.ang) * s.d;
-        const y = vpy + Math.sin(s.ang) * s.d;
-        if (x < -60 || x > W + 60 || y < -60 || y > H + 60) continue;
-        const k = s.d / SPAN;                                // 0 = au fond, 1 = tout proche
-        const r = s.z * (0.40 + k * 1.60);
-        const al = s.P.a * Math.min(1, k * 2.6 + 0.06) * Math.min(1, (1 - k) * 4.5 + 0.20);
-        if (r < 0.85) {                                      // poussière : un simple carré suffit
-          ctx.fillStyle = 'rgba(255,244,228,' + al.toFixed(3) + ')';
-          ctx.fillRect(x, y, r * 2, r * 2);
-        } else {
-          if (r > 1.1) {                                     // halo (sprite, pas de dégradé)
-            const gs = r * 10;
-            ctx.globalAlpha = al * 0.72;
-            ctx.drawImage(GLOW, x - gs / 2, y - gs / 2, gs, gs);
-            ctx.globalAlpha = 1;
-          }
-          ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
-          ctx.fillStyle = 'rgba(255,246,232,' + al.toFixed(3) + ')';
+      /* ── Étoiles notables : halo + aigrettes ── */
+      for (let i = 0; i < notables.length; i++) {
+        const s = notables[i];
+        const resp = 0.80 + 0.20 * Math.sin(t * (6.2832 / s.pe) + s.ph);
+        const a = s.a * resp;
+        const gs = s.r * 11;
+        ctx.globalAlpha = a * 0.55;
+        ctx.drawImage(s.chaud ? HALO_CHAUD : HALO_BLANC, s.x - gs / 2, s.y - gs / 2, gs, gs);
+        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+        ctx.fillStyle = 'rgba(255,252,244,' + a.toFixed(3) + ')';
+        ctx.fill();
+        if (s.aigrette) {                                  // croix des étoiles brillantes
+          const l = s.r * 7;
+          ctx.strokeStyle = 'rgba(255,250,240,' + (a * 0.28).toFixed(3) + ')';
+          ctx.lineWidth = 0.9;
+          ctx.beginPath();
+          ctx.moveTo(s.x - l, s.y); ctx.lineTo(s.x + l, s.y);
+          ctx.moveTo(s.x, s.y - l); ctx.lineTo(s.x, s.y + l);
+          ctx.stroke();
+        }
+      }
+
+      /* ── Constellations : le tracé d'abord, les étoiles par-dessus ── */
+      for (let i = 0; i < figures.length; i++) {
+        const f = figures[i];
+        ctx.strokeStyle = 'rgba(198,216,255,' + f.opacite.toFixed(3) + ')';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        for (let j = 0; j < f.liens.length; j++) {
+          const a = f.liens[j][0], b = f.liens[j][1];
+          ctx.moveTo(f.etoiles[a].x, f.etoiles[a].y);
+          ctx.lineTo(f.etoiles[b].x, f.etoiles[b].y);
+        }
+        ctx.stroke();
+        for (let j = 0; j < f.etoiles.length; j++) {
+          const s = f.etoiles[j];
+          const resp = 0.82 + 0.18 * Math.sin(t * (6.2832 / s.pe) + s.ph);
+          const a = s.a * resp;
+          const gs = s.r * 13;
+          ctx.globalAlpha = a * 0.60;
+          ctx.drawImage(HALO_BLANC, s.x - gs / 2, s.y - gs / 2, gs, gs);
+          ctx.globalAlpha = 1;
+          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+          ctx.fillStyle = 'rgba(255,253,247,' + a.toFixed(3) + ')';
           ctx.fill();
         }
       }
 
       /* ── Étoiles filantes ── */
-      shootingStars.forEach((ss, i) => {
-        const dx = Math.cos(ss.angle) * ss.len;
-        const dy = Math.sin(ss.angle) * ss.len;
-        const grad = ctx.createLinearGradient(ss.x, ss.y, ss.x - dx, ss.y - dy);
-        grad.addColorStop(0, `rgba(255,255,255,${ss.opacity})`);
-        grad.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.5;
+      for (let i = filantes.length - 1; i >= 0; i--) {
+        const f = filantes[i];
+        const dx = Math.cos(f.angle) * f.len;
+        const dy = Math.sin(f.angle) * f.len;
+        const g = ctx.createLinearGradient(f.x, f.y, f.x - dx, f.y - dy);
+        g.addColorStop(0,   'rgba(255,252,242,' + f.opacite.toFixed(3) + ')');
+        g.addColorStop(0.4, 'rgba(255,238,210,' + (f.opacite * 0.35).toFixed(3) + ')');
+        g.addColorStop(1,   'rgba(255,238,210,0)');
+        ctx.strokeStyle = g;
+        ctx.lineWidth = 2.0;
+        ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(ss.x, ss.y);
-        ctx.lineTo(ss.x - dx, ss.y - dy);
+        ctx.moveTo(f.x, f.y);
+        ctx.lineTo(f.x - dx, f.y - dy);
         ctx.stroke();
-        ss.x -= Math.cos(ss.angle) * ss.speed;
-        ss.y -= Math.sin(ss.angle) * ss.speed;
-        ss.opacity -= 0.015;
-        if (ss.opacity <= 0) shootingStars.splice(i, 1);
-      });
 
-      /* ── Parallaxe : le fond recule doucement pendant qu'on défile ── */
-      if (fondLayer) {
-        const frac = Math.min(1, defilement / maxS);
-        fondLayer.style.transform = 'translate3d(0,' + (frac * H * 0.085).toFixed(1) + 'px,0)';
+        /* La tête : sans elle, la traînée ressemble à une rayure sur l'écran. */
+        ctx.globalAlpha = f.opacite * 0.55;
+        ctx.drawImage(HALO_BLANC, f.x - 12, f.y - 12, 24, 24);
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 1.7, 0, 6.2832);
+        ctx.fillStyle = 'rgba(255,253,246,' + f.opacite.toFixed(3) + ')';
+        ctx.fill();
+
+        f.x -= Math.cos(f.angle) * f.vitesse * dt;
+        f.y -= Math.sin(f.angle) * f.vitesse * dt;
+        f.opacite -= f.chute * dt;
+        if (f.opacite <= 0) filantes.splice(i, 1);
       }
 
-      requestAnimationFrame(draw);
+      requestAnimationFrame(dessiner);
     }
 
     resize();
-    requestAnimationFrame(draw);
-    setInterval(() => { if (Math.random() < 0.45) spawnShootingStar(); }, 3200);
+    requestAnimationFrame(dessiner);
+    setInterval(() => { if (Math.random() < 0.75) nouvelleFilante(); }, 2600);
 
     /* ── Formulaire de contact (Formspree, AJAX) ── */
     const contactForm = document.getElementById('contact-form');
