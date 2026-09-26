@@ -20,19 +20,21 @@
       min-height: 100vh;
     }
 
-    /* ── Canvas galactique ── */
+    /* ── Canvas galactique : étoiles + trou noir ── */
     #galaxy {
       position: fixed;
       inset: 0;
       z-index: 0;
     }
 
-    /* Vignette */
+    /* Vignette + voile de lisibilité (le texte passe au-dessus) */
     body::after {
       content: '';
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 25%, #140c07 100%);
+      background:
+        radial-gradient(ellipse 58% 64% at 38% 48%, rgba(18,10,5,0.80) 0%, rgba(18,10,5,0.44) 55%, rgba(18,10,5,0) 100%),
+        radial-gradient(ellipse 92% 82% at 50% 50%, transparent 22%, #120a05 100%);
       z-index: 1;
       pointer-events: none;
     }
@@ -732,7 +734,7 @@
     /* ── Fond galactique — première version ── */
     const canvas = document.getElementById('galaxy');
     const ctx = canvas.getContext('2d');
-    let W, H, stars = [], nebulae = [], shootingStars = [];
+    let W, H, stars = [], shootingStars = [];
 
     function resize() {
       W = canvas.width = window.innerWidth;
@@ -741,7 +743,7 @@
     window.addEventListener('resize', resize);
     resize();
 
-    function initStars(n = 220) {
+    function initStars(n = 120) {
       stars = [];
       for (let i = 0; i < n; i++) {
         stars.push({
@@ -752,14 +754,6 @@
           speed: Math.random() * 0.04 + 0.01
         });
       }
-    }
-
-    function initNebulae() {
-      nebulae = [
-        { x: W * 0.15, y: H * 0.3, r: W * 0.25, color: '255,138,38,0.09', angle: 0 },
-        { x: W * 0.8,  y: H * 0.7, r: W * 0.22, color: '214,86,24,0.08', angle: Math.PI },
-        { x: W * 0.5,  y: H * 0.1, r: W * 0.18, color: '255,196,92,0.06', angle: Math.PI / 2 }
-      ];
     }
 
     function spawnShootingStar() {
@@ -773,26 +767,79 @@
       });
     }
 
+    /* ── Trou noir : halo, disque d'accrétion, horizon, lensement ── */
+    function drawBlackHole(now) {
+      const cx = W * 0.70, cy = H * 0.40;      // décalé : le texte reste lisible
+      const R  = Math.min(W, H) * 0.085;       // rayon de l'horizon
+      const rx = R * 3.7, sq = 0.17;           // disque : portée + aplatissement
+      const spin = now * 0.00005;              // rotation lente
+
+      /* halo de lumière chaude */
+      const halo = ctx.createRadialGradient(cx, cy, R * 0.7, cx, cy, R * 6.5);
+      halo.addColorStop(0,    'rgba(255,182,92,0.22)');
+      halo.addColorStop(0.22, 'rgba(228,112,36,0.11)');
+      halo.addColorStop(0.55, 'rgba(150,52,16,0.04)');
+      halo.addColorStop(1,    'rgba(0,0,0,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath(); ctx.arc(cx, cy, R * 6.5, 0, 6.2832); ctx.fill();
+
+      /* le disque (dessiné dans un espace aplati) */
+      function disk(mode) {
+        ctx.save();
+        ctx.translate(cx, cy); ctx.rotate(-0.05); ctx.scale(1, sq);
+        const dg = ctx.createRadialGradient(0, 0, R, 0, 0, rx);
+        dg.addColorStop(0,    'rgba(255,240,200,0.90)');
+        dg.addColorStop(0.10, 'rgba(255,196,108,0.86)');
+        dg.addColorStop(0.30, 'rgba(246,140,48,0.68)');
+        dg.addColorStop(0.60, 'rgba(196,82,26,0.34)');
+        dg.addColorStop(1,    'rgba(90,30,8,0)');
+        if (mode === 'near') {
+          ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI); ctx.closePath(); ctx.clip();
+        }
+        ctx.beginPath(); ctx.arc(0, 0, rx, 0, 6.2832);
+        ctx.fillStyle = dg; ctx.fill();
+        ctx.restore();
+      }
+      disk('full');
+
+      /* stries de matière en rotation */
+      ctx.save();
+      ctx.translate(cx, cy); ctx.rotate(-0.05); ctx.scale(1, sq);
+      for (let i = 0; i < 150; i++) {
+        const a  = i * 0.42 + spin * (0.5 + (i % 7) * 0.18);
+        const rr = R * (1.08 + (i % 23) * 0.115);
+        if (rr > rx) continue;
+        ctx.beginPath(); ctx.arc(0, 0, rr, a, a + 0.30);
+        ctx.strokeStyle = 'rgba(255,' + (158 + (i % 5) * 22) + ',' + (72 + (i % 4) * 30) + ',' + (0.045 + (i % 3) * 0.028) + ')';
+        ctx.lineWidth = 1.15; ctx.stroke();
+      }
+      ctx.restore();
+
+      /* horizon des événements */
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832);
+      ctx.fillStyle = '#000'; ctx.fill();
+
+      /* anneau de photons */
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.045, 0, 6.2832);
+      ctx.strokeStyle = 'rgba(255,236,200,0.92)'; ctx.lineWidth = 2.4; ctx.stroke();
+
+      /* le bord proche du disque passe devant le trou noir */
+      ctx.save(); ctx.globalAlpha = 0.62; disk('near'); ctx.restore();
+
+      /* lensement : la face lointaine du disque se relève autour du trou */
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.30, Math.PI * 1.06, Math.PI * 1.94);
+      ctx.strokeStyle = 'rgba(255,174,82,0.44)'; ctx.lineWidth = R * 0.135; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.30, Math.PI * 1.14, Math.PI * 1.86);
+      ctx.strokeStyle = 'rgba(255,226,172,0.58)'; ctx.lineWidth = R * 0.04; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, cy, R * 1.30, Math.PI * 0.10, Math.PI * 0.90);
+      ctx.strokeStyle = 'rgba(255,178,96,0.14)'; ctx.lineWidth = R * 0.12; ctx.stroke();
+      ctx.restore();
+    }
+
     function draw(now) {
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#140c07';
-      ctx.fillRect(0, 0, W, H);
-
-      /* ── Nébuleuses en rotation lente ── */
-      nebulae.forEach(n => {
-        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
-        g.addColorStop(0, `rgba(${n.color})`);
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = g;
-        ctx.save();
-        ctx.translate(n.x, n.y);
-        ctx.rotate(n.angle + now * 0.00003);
-        ctx.translate(-n.x, -n.y);
-        ctx.beginPath();
-        ctx.ellipse(n.x, n.y, n.r, n.r * 0.6, n.angle, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      });
 
       /* ── Étoiles fixes (steady) ── */
       stars.forEach(s => {
@@ -801,6 +848,9 @@
         ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
         ctx.fill();
       });
+
+      /* ── Trou noir ── */
+      drawBlackHole(now);
 
       /* ── Étoiles filantes ── */
       shootingStars.forEach((ss, i) => {
@@ -825,7 +875,6 @@
     }
 
     initStars();
-    initNebulae();
     requestAnimationFrame(draw);
     setInterval(() => { if (Math.random() < 0.4) spawnShootingStar(); }, 3000);
 
