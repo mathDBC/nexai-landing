@@ -13,7 +13,7 @@
 
     html { scroll-behavior: smooth; }
     body {
-      background: #140c07;
+      background: #050302;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       color: #f5ece0;
       overflow-x: hidden;
@@ -32,7 +32,7 @@
       content: '';
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 25%, #140c07 100%);
+      background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 25%, #050302 100%);
       z-index: 1;
       pointer-events: none;
     }
@@ -749,16 +749,17 @@
           y: Math.random() * H,
           r: Math.random() * 1.4 + 0.2,
           opacity: Math.random() * 0.7 + 0.3,
-          speed: Math.random() * 0.04 + 0.01
+          phase: Math.random() * Math.PI * 2,
+          vitesse: (Math.PI * 2) / (1.6 + Math.random() * 4.4)   // période 1,6 à 6 s
         });
       }
     }
 
     function initNebulae() {
       nebulae = [
-        { x: W * 0.15, y: H * 0.3, r: W * 0.25, color: '255,138,38,0.09', angle: 0 },
-        { x: W * 0.8,  y: H * 0.7, r: W * 0.22, color: '214,86,24,0.08', angle: Math.PI },
-        { x: W * 0.5,  y: H * 0.1, r: W * 0.18, color: '255,196,92,0.06', angle: Math.PI / 2 }
+        { x: W * 0.15, y: H * 0.3, r: W * 0.25, color: '255,138,38,0.048', angle: 0 },
+        { x: W * 0.8,  y: H * 0.7, r: W * 0.22, color: '214,86,24,0.044', angle: Math.PI },
+        { x: W * 0.5,  y: H * 0.1, r: W * 0.18, color: '255,196,92,0.032', angle: Math.PI / 2 }
       ];
     }
 
@@ -775,7 +776,7 @@
 
     function draw(now) {
       ctx.clearRect(0, 0, W, H);
-      ctx.fillStyle = '#140c07';
+      ctx.fillStyle = '#050302';
       ctx.fillRect(0, 0, W, H);
 
       /* ── Nébuleuses en rotation lente ── */
@@ -794,11 +795,16 @@
         ctx.restore();
       });
 
-      /* ── Étoiles fixes (steady) ── */
+      /* ── Étoiles scintillantes ──
+         Chaque étoile a sa propre période (1,6 à 6 s) et son déphasage : elles
+         ne clignotent donc jamais ensemble, ce qui donnerait un effet de
+         stroboscope. L'éclat varie de 24 % à 100 %, la taille suit légèrement. */
+      const t = now / 1000;
       stars.forEach(s => {
+        const on = Math.sin(t * s.vitesse + s.phase);
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
+        ctx.arc(s.x, s.y, s.r * (0.88 + 0.12 * on), 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${(s.opacity * (0.72 + 0.28 * on)).toFixed(3)})`;
         ctx.fill();
       });
 
