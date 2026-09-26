@@ -20,15 +20,14 @@
       min-height: 100vh;
     }
 
-    /* ── Canvas : toute la nuit est dessinée ici (nébuleuses, étoiles) ── */
+    /* ── Canvas galactique ── */
     #galaxy {
       position: fixed;
       inset: 0;
       z-index: 0;
-      pointer-events: none;
     }
 
-    /* Vignette : assombrit les bords, laisse le centre net */
+    /* Vignette */
     body::after {
       content: '';
       position: fixed;
@@ -718,10 +717,6 @@
           <h3>5. Limitation de responsabilité</h3>
           <p>Les informations présentées sur ce site sont fournies à titre indicatif. L'éditeur ne saurait être tenu responsable des erreurs ou résultats obtenus suite à un usage inadapté.</p>
         </div>
-        <div class="legal-block">
-          <h3>6. Crédits</h3>
-          <p>Fond : ciel de nuit composé pour le site (nébuleuses et étoiles générées, aucune image extérieure).</p>
-        </div>
         <p class="legal-update">Dernière mise à jour : septembre 2026</p>
       </div>
     </section>
@@ -734,242 +729,105 @@
   </div>
 
   <script>
-    /* ══ Ciel de nuit ══════════════════════════════════════════════════
-       Trois familles d'étoiles superposées :
-         · la poussière       — très nombreuse, fine, à peine visible
-         · les étoiles notables — plus grosses, halo et aigrettes
-         · les constellations  — figures réelles reliées par un trait ténu
-       Plus quelques nébuleuses chaudes en rotation très lente, et des étoiles
-       filantes. Le tout respire : chaque étoile a sa propre période, ce qui
-       évite l'effet « clignotement » d'un scintillement synchronisé.        */
+    /* ── Fond galactique — première version ── */
     const canvas = document.getElementById('galaxy');
     const ctx = canvas.getContext('2d');
-    let W, H, poussiere = [], notables = [], figures = [], nebuleuses = [], filantes = [];
-
-    /* Le halo est dessiné UNE seule fois puis réutilisé : le recréer pour chaque
-       étoile à chaque image faisait tomber la page à quelques images/seconde. */
-    function faireHalo(teinte) {
-      const s = 64, c = document.createElement('canvas');
-      c.width = c.height = s;
-      const g = c.getContext('2d');
-      const gr = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
-      gr.addColorStop(0,    'rgba(' + teinte + ',0.85)');
-      gr.addColorStop(0.28, 'rgba(' + teinte + ',0.20)');
-      gr.addColorStop(1,    'rgba(' + teinte + ',0)');
-      g.fillStyle = gr; g.beginPath(); g.arc(s / 2, s / 2, s / 2, 0, 6.2832); g.fill();
-      return c;
-    }
-    const HALO_BLANC = faireHalo('226,236,255');
-    const HALO_CHAUD = faireHalo('255,214,158');
-
-    /* Constellations réelles, en coordonnées relatives (0 → 1). Elles sont
-       placées sur les bords pour ne jamais passer derrière le texte. */
-    const CONSTELLATIONS = [
-      { e: [[0.05,0.14],[0.115,0.185],[0.175,0.215],[0.245,0.255],[0.305,0.205],[0.375,0.225],[0.435,0.285]],
-        l: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]] },                    // Grande Ourse
-      { e: [[0.705,0.085],[0.765,0.14],[0.825,0.075],[0.885,0.145],[0.945,0.09]],
-        l: [[0,1],[1,2],[2,3],[3,4]] },                                // Cassiopée
-      { e: [[0.085,0.60],[0.115,0.555],[0.155,0.525],[0.205,0.555],[0.245,0.605],[0.135,0.475],[0.185,0.665]],
-        l: [[0,5],[5,1],[1,2],[2,3],[3,6],[6,4],[3,5]] },              // Orion
-      { e: [[0.845,0.585],[0.868,0.645],[0.892,0.705],[0.822,0.642],[0.914,0.648]],
-        l: [[0,1],[1,2],[3,1],[1,4]] }                                 // Cygne
-    ];
-
-    function initCiel() {
-      const surface = W * H;
-
-      /* Poussière : densité proportionnelle à la surface de l'écran */
-      poussiere = [];
-      const nbP = Math.min(720, Math.round(surface / 2600));
-      for (let i = 0; i < nbP; i++) {
-        poussiere.push({
-          x: Math.random() * W, y: Math.random() * H,
-          r: 0.30 + Math.random() * 0.70,
-          a: 0.18 + Math.random() * 0.45,
-          ph: Math.random() * 6.2832,
-          pe: 4 + Math.random() * 9
-        });
-      }
-
-      /* Étoiles notables */
-      notables = [];
-      const nbN = Math.min(150, Math.round(surface / 13000));
-      for (let i = 0; i < nbN; i++) {
-        notables.push({
-          x: Math.random() * W, y: Math.random() * H,
-          r: 0.85 + Math.random() * 1.25,
-          a: 0.70 + Math.random() * 0.30,
-          chaud: Math.random() < 0.28,
-          aigrette: Math.random() < 0.32,
-          ph: Math.random() * 6.2832,
-          pe: 5 + Math.random() * 10
-        });
-      }
-
-      /* Constellations */
-      figures = CONSTELLATIONS.map(c => ({
-        etoiles: c.e.map(([x, y]) => ({
-          x: x * W, y: y * H,
-          r: 1.55 + Math.random() * 0.95,
-          a: 0.90 + Math.random() * 0.10,
-          ph: Math.random() * 6.2832,
-          pe: 7 + Math.random() * 11
-        })),
-        liens: c.l,
-        opacite: 0.085 + Math.random() * 0.065
-      }));
-
-      /* Nébuleuses : sur les bords et les angles, le centre reste dégagé */
-      nebuleuses = [
-        { x: W * 0.13, y: H * 0.30, r: W * 0.31, teinte: '255,138,38', a: 0.145, v: 1.00 },
-        { x: W * 0.84, y: H * 0.68, r: W * 0.28, teinte: '214,86,24',  a: 0.130, v: 0.85 },
-        { x: W * 0.50, y: H * 0.06, r: W * 0.25, teinte: '255,196,92', a: 0.100, v: 0.65 },
-        { x: W * 0.20, y: H * 0.88, r: W * 0.23, teinte: '255,166,88', a: 0.100, v: 0.80 },
-        { x: W * 0.92, y: H * 0.23, r: W * 0.20, teinte: '255,206,140', a: 0.080, v: 0.70 }
-      ];
-    }
+    let W, H, stars = [], nebulae = [], shootingStars = [];
 
     function resize() {
       W = canvas.width = window.innerWidth;
       H = canvas.height = window.innerHeight;
-      initCiel();
     }
     window.addEventListener('resize', resize);
+    resize();
 
-    function nouvelleFilante() {
-      filantes.push({
-        x: (0.15 + Math.random() * 1.0) * W,
-        y: Math.random() * H * 0.55,
-        len: Math.random() * 70 + 45,
-        vitesse: Math.random() * 3.4 + 1.8,
-        angle: Math.PI / 4 + (Math.random() - 0.5) * 0.30,
-        opacite: 1,
-        chute: 0.008 + Math.random() * 0.010
+    function initStars(n = 220) {
+      stars = [];
+      for (let i = 0; i < n; i++) {
+        stars.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          r: Math.random() * 1.4 + 0.2,
+          opacity: Math.random() * 0.7 + 0.3,
+          speed: Math.random() * 0.04 + 0.01
+        });
+      }
+    }
+
+    function initNebulae() {
+      nebulae = [
+        { x: W * 0.15, y: H * 0.3, r: W * 0.25, color: '255,138,38,0.09', angle: 0 },
+        { x: W * 0.8,  y: H * 0.7, r: W * 0.22, color: '214,86,24,0.08', angle: Math.PI },
+        { x: W * 0.5,  y: H * 0.1, r: W * 0.18, color: '255,196,92,0.06', angle: Math.PI / 2 }
+      ];
+    }
+
+    function spawnShootingStar() {
+      shootingStars.push({
+        x: Math.random() * W,
+        y: Math.random() * H * 0.5,
+        len: Math.random() * 60 + 30,
+        speed: Math.random() * 2 + 1,
+        angle: Math.PI / 4 + (Math.random() - 0.5) * 0.3,
+        opacity: 1
       });
     }
 
-    let dernier = 0;
-    function dessiner(now) {
+    function draw(now) {
       ctx.clearRect(0, 0, W, H);
-      /* On avance en temps réel : la vitesse ne dépend pas du nombre d'images
-         par seconde, donc le rendu est le même sur un PC récent et un vieux. */
-      const dt = dernier ? Math.min(64, now - dernier) / 16.7 : 1;
-      dernier = now;
-      const t = now / 1000;
+      ctx.fillStyle = '#140c07';
+      ctx.fillRect(0, 0, W, H);
 
-      /* ── Nébuleuses : rotation très lente (≈ 3 minutes par tour) ── */
-      for (let i = 0; i < nebuleuses.length; i++) {
-        const n = nebuleuses[i];
+      /* ── Nébuleuses en rotation lente ── */
+      nebulae.forEach(n => {
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
-        g.addColorStop(0,    'rgba(' + n.teinte + ',' + n.a + ')');
-        g.addColorStop(0.45, 'rgba(' + n.teinte + ',' + (n.a * 0.45).toFixed(3) + ')');
-        g.addColorStop(1,    'rgba(' + n.teinte + ',0)');
+        g.addColorStop(0, `rgba(${n.color})`);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
         ctx.save();
         ctx.translate(n.x, n.y);
-        ctx.rotate(t * 0.031 * n.v);
+        ctx.rotate(n.angle + now * 0.00003);
         ctx.translate(-n.x, -n.y);
-        ctx.fillStyle = g;
         ctx.beginPath();
-        ctx.ellipse(n.x, n.y, n.r, n.r * 0.62, 0, 0, 6.2832);
+        ctx.ellipse(n.x, n.y, n.r, n.r * 0.6, n.angle, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
-      }
+      });
 
-      /* ── Poussière d'étoiles ── */
-      for (let i = 0; i < poussiere.length; i++) {
-        const s = poussiere[i];
-        const resp = 0.85 + 0.15 * Math.sin(t * (6.2832 / s.pe) + s.ph);
-        ctx.fillStyle = 'rgba(236,240,255,' + (s.a * resp).toFixed(3) + ')';
-        ctx.fillRect(s.x, s.y, s.r, s.r);
-      }
-
-      /* ── Étoiles notables : halo + aigrettes ── */
-      for (let i = 0; i < notables.length; i++) {
-        const s = notables[i];
-        const resp = 0.80 + 0.20 * Math.sin(t * (6.2832 / s.pe) + s.ph);
-        const a = s.a * resp;
-        const gs = s.r * 11;
-        ctx.globalAlpha = a * 0.55;
-        ctx.drawImage(s.chaud ? HALO_CHAUD : HALO_BLANC, s.x - gs / 2, s.y - gs / 2, gs, gs);
-        ctx.globalAlpha = 1;
-        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832);
-        ctx.fillStyle = 'rgba(255,252,244,' + a.toFixed(3) + ')';
-        ctx.fill();
-        if (s.aigrette) {                                  // croix des étoiles brillantes
-          const l = s.r * 7;
-          ctx.strokeStyle = 'rgba(255,250,240,' + (a * 0.28).toFixed(3) + ')';
-          ctx.lineWidth = 0.9;
-          ctx.beginPath();
-          ctx.moveTo(s.x - l, s.y); ctx.lineTo(s.x + l, s.y);
-          ctx.moveTo(s.x, s.y - l); ctx.lineTo(s.x, s.y + l);
-          ctx.stroke();
-        }
-      }
-
-      /* ── Constellations : le tracé d'abord, les étoiles par-dessus ── */
-      for (let i = 0; i < figures.length; i++) {
-        const f = figures[i];
-        ctx.strokeStyle = 'rgba(198,216,255,' + f.opacite.toFixed(3) + ')';
-        ctx.lineWidth = 0.7;
+      /* ── Étoiles fixes (steady) ── */
+      stars.forEach(s => {
         ctx.beginPath();
-        for (let j = 0; j < f.liens.length; j++) {
-          const a = f.liens[j][0], b = f.liens[j][1];
-          ctx.moveTo(f.etoiles[a].x, f.etoiles[a].y);
-          ctx.lineTo(f.etoiles[b].x, f.etoiles[b].y);
-        }
-        ctx.stroke();
-        for (let j = 0; j < f.etoiles.length; j++) {
-          const s = f.etoiles[j];
-          const resp = 0.82 + 0.18 * Math.sin(t * (6.2832 / s.pe) + s.ph);
-          const a = s.a * resp;
-          const gs = s.r * 13;
-          ctx.globalAlpha = a * 0.60;
-          ctx.drawImage(HALO_BLANC, s.x - gs / 2, s.y - gs / 2, gs, gs);
-          ctx.globalAlpha = 1;
-          ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832);
-          ctx.fillStyle = 'rgba(255,253,247,' + a.toFixed(3) + ')';
-          ctx.fill();
-        }
-      }
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${s.opacity})`;
+        ctx.fill();
+      });
 
       /* ── Étoiles filantes ── */
-      for (let i = filantes.length - 1; i >= 0; i--) {
-        const f = filantes[i];
-        const dx = Math.cos(f.angle) * f.len;
-        const dy = Math.sin(f.angle) * f.len;
-        const g = ctx.createLinearGradient(f.x, f.y, f.x - dx, f.y - dy);
-        g.addColorStop(0,   'rgba(255,252,242,' + f.opacite.toFixed(3) + ')');
-        g.addColorStop(0.4, 'rgba(255,238,210,' + (f.opacite * 0.35).toFixed(3) + ')');
-        g.addColorStop(1,   'rgba(255,238,210,0)');
-        ctx.strokeStyle = g;
-        ctx.lineWidth = 2.0;
-        ctx.lineCap = 'round';
+      shootingStars.forEach((ss, i) => {
+        const dx = Math.cos(ss.angle) * ss.len;
+        const dy = Math.sin(ss.angle) * ss.len;
+        const grad = ctx.createLinearGradient(ss.x, ss.y, ss.x - dx, ss.y - dy);
+        grad.addColorStop(0, `rgba(255,255,255,${ss.opacity})`);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(f.x, f.y);
-        ctx.lineTo(f.x - dx, f.y - dy);
+        ctx.moveTo(ss.x, ss.y);
+        ctx.lineTo(ss.x - dx, ss.y - dy);
         ctx.stroke();
+        ss.x -= Math.cos(ss.angle) * ss.speed;
+        ss.y -= Math.sin(ss.angle) * ss.speed;
+        ss.opacity -= 0.015;
+        if (ss.opacity <= 0) shootingStars.splice(i, 1);
+      });
 
-        /* La tête : sans elle, la traînée ressemble à une rayure sur l'écran. */
-        ctx.globalAlpha = f.opacite * 0.55;
-        ctx.drawImage(HALO_BLANC, f.x - 12, f.y - 12, 24, 24);
-        ctx.globalAlpha = 1;
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, 1.7, 0, 6.2832);
-        ctx.fillStyle = 'rgba(255,253,246,' + f.opacite.toFixed(3) + ')';
-        ctx.fill();
-
-        f.x -= Math.cos(f.angle) * f.vitesse * dt;
-        f.y -= Math.sin(f.angle) * f.vitesse * dt;
-        f.opacite -= f.chute * dt;
-        if (f.opacite <= 0) filantes.splice(i, 1);
-      }
-
-      requestAnimationFrame(dessiner);
+      requestAnimationFrame(draw);
     }
 
-    resize();
-    requestAnimationFrame(dessiner);
-    setInterval(() => { if (Math.random() < 0.75) nouvelleFilante(); }, 2600);
+    initStars();
+    initNebulae();
+    requestAnimationFrame(draw);
+    setInterval(() => { if (Math.random() < 0.4) spawnShootingStar(); }, 3000);
 
     /* ── Formulaire de contact (Formspree, AJAX) ── */
     const contactForm = document.getElementById('contact-form');
